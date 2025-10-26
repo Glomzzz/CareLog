@@ -1,0 +1,38 @@
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from datetime import date
+from typing import Optional
+
+
+@dataclass
+class PatientAssignment:
+    """Represents the linkage between a patient and a care staff member."""
+
+    assignment_id: str
+    assigned_date: date
+    assignment_type: str
+    notes: str = ""
+    patient_id: Optional[str] = None
+    staff_id: Optional[str] = None
+    active: bool = True
+
+    def assign_patient(self, patient_id: str, staff_id: str) -> bool:
+        if not patient_id or not staff_id:
+            return False
+        self.patient_id = patient_id
+        self.staff_id = staff_id
+        self.active = True
+        return True
+
+    def transfer_patient(self, patient_id: str, new_staff_id: str) -> bool:
+        if patient_id != self.patient_id:
+            return False
+        self.staff_id = new_staff_id
+        return True
+
+    def end_assignment(self, patient_id: str) -> bool:
+        if patient_id != self.patient_id:
+            return False
+        self.active = False
+        return True
