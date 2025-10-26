@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Any, Dict, List
 
 from colorama import Fore, Style
+import bcrypt
 
 from app.alerts import Alert, NotificationService
 from app.assignment import PatientAssignment
@@ -15,6 +16,7 @@ from app.user import User
 from app.food import FoodToDeliver
 from app.datastore import DataStore
 
+salt = bcrypt.gensalt()
 
 class CareStaff(User):
     """Hybrid domain/service class representing a member of the care team."""
@@ -60,6 +62,18 @@ class CareStaff(User):
     def _save_data(self, data: Dict[str, List[Dict[str, str]]]) -> None:
         DataStore.save_all(data)
 
+    def save(self) -> bool:
+        """Persist this carestaff instance to the DataStore."""
+        try:
+            DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
+            return True
+        except Exception:
+            return False
+
+    def _auto_save(self) -> None:
+        """Automatically save after modifications."""
+        self.save()
+
     # ---------------------------------------------------------------------
     # Domain operations from the class diagram
     # ---------------------------------------------------------------------
@@ -92,12 +106,17 @@ class CareStaff(User):
         for task in self.tasks:
             if task.task_id == task_id:
                 if action == "complete":
-                    return task.mark_complete()
+                    result = task.mark_complete()
                 elif action == "escalate":
-                    return task.escalate_task()
+                    result = task.escalate_task()
                 elif action.startswith("update:"):
                     status = action.split(":", 1)[1]
-                    return task.update_progress(status)
+                    result = task.update_progress(status)
+                else:
+                    return False
+                if result:
+                    self._auto_save()
+                return result
         return False
 
     def view_assigned_patients(self) -> List[str]:
@@ -118,10 +137,14 @@ class CareStaff(User):
         """Handle an alert by acknowledging or resolving it."""
         for alert in self.alerts:
             if alert.alert_id == alert_id:
+                result = False
                 if action == "acknowledge":
-                    return alert.acknowledge_alert(self)
+                    result = alert.acknowledge_alert(self)
                 elif action == "resolve":
-                    return alert.resolve_alert(self)
+                    result = alert.resolve_alert(self)
+                if result:
+                    self._auto_save()
+                return result
         return False
 
     def assign_patient(self, patient_id: str) -> bool:
@@ -136,6 +159,7 @@ class CareStaff(User):
             )
             assignment.assign_patient(patient_id, self.staff_id)
             self.assignments.append(assignment)
+            self._auto_save()
             return True
         return False
 
@@ -146,6 +170,7 @@ class CareStaff(User):
             for assignment in self.assignments:
                 if assignment.patient_id == patient_id:
                     assignment.end_assignment(patient_id)
+            self._auto_save()
             return True
         return False
 
@@ -218,6 +243,7 @@ class CareStaff(User):
             "carestaffID": self.staff_id,
             "name": self.name,
             "email": self.email,
+            "password": self.password,
             "department": self.department,
             "specialization": self.specialization,
             "role": self.role,
@@ -233,7 +259,12 @@ class CareStaff(User):
             department=data.get("department", ""),
             specialization=data.get("specialization", ""),
         )
-
+    @classmethod
+    def get_carestaff_by_id(cls, carestaff_id: str) -> CareStaff | None:
+        data = DataStore.get_by_id("carestaffs", "carestaffID", carestaff_id)
+        if data:
+            return cls.from_dict(data)
+        return None
 
 class Doctor(CareStaff):
     """Specialised care staff capable of managing medical treatment plans."""
@@ -256,7 +287,7 @@ class Doctor(CareStaff):
         self.work_to_do = work_to_do
         self.patient_records: Dict[str, MedicalDetails] = {}
 
-    def update_medical_details(self, patient_id: str, medical_info: Dict[str, str]) -> bool:
+    def update_medical_details(self,  patient_id: str, medical_info: Dict[str, str]) -> bool:
         record = self.patient_records.get(patient_id) or MedicalDetails(
             record_id=f"med-{patient_id}",
             created_at=datetime.now(),
@@ -270,25 +301,28 @@ class Doctor(CareStaff):
         if "medications" in medical_info:
             record.update_medication(medical_info["medications"])
         self.patient_records[patient_id] = record
+        DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
         return True
 
-    def prescribe_medication(self, patient_id: str, medication: Dict[str, str]) -> bool:
+    def prescribe_medication(self,  patient_id: str, medication: Dict[str, str]) -> bool:
         record = self.patient_records.get(patient_id)
         if not record:
             return False
         meds = list(record.medications)
         meds.append(medication.get("name", ""))
         record.update_medication(meds)
+        DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
         return True
 
-    def approve_treatment_plans(self, patient_id: str, plan: Dict[str, str]) -> bool:
+    def approve_treatment_plans(self,  patient_id: str, plan: Dict[str, str]) -> bool:
         record = self.patient_records.get(patient_id)
         if not record:
             return False
         record.status = plan.get("status", "approved")
+        DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
         return True
 
-    def escalate_to_specialist(self, patient_id: str, specialist_type: str) -> bool:
+    def escalate_to_specialist(self,  patient_id: str, specialist_type: str) -> bool:
         alert = Alert(
             alert_id=f"alert-{patient_id}-{len(self.alerts) + 1}",
             type="escalation",
@@ -296,15 +330,17 @@ class Doctor(CareStaff):
             message=f"Escalate {patient_id} to {specialist_type}",
         )
         self.alerts.append(alert)
+        DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
         return True
 
-    def manage_appointments(self, appointment_id: str, action: str) -> bool:
+    def manage_appointments(self,  appointment_id: str, action: str) -> bool:
         """Manage appointments: approve, reschedule, cancel."""
         if appointment_id in self.appointment_list:
             if action == "approve":
                 return True
             elif action == "cancel":
                 self.appointment_list.remove(appointment_id)
+                DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
                 return True
         return False
 
@@ -346,6 +382,7 @@ class Doctor(CareStaff):
         """Add an appointment to the doctor's schedule."""
         if appointment_id not in self.appointment_list:
             self.appointment_list.append(appointment_id)
+            DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
             return True
         return False
 
@@ -374,6 +411,32 @@ class Doctor(CareStaff):
             department=data.get("department", ""),
             specialization=data.get("specialization", ""),
         )
+    
+    @classmethod
+    def get_doctor_by_id(cls, doctor_id: str) -> Doctor | None:
+        """Get a doctor by ID from the datastore."""
+        data = DataStore.get_by_id("carestaffs", "carestaffID", doctor_id)
+        if data and data.get("role") == "doctor":
+            return cls.from_dict(data)
+        return None
+    
+    @classmethod
+    def register(cls, name: str, carestaff_id: str, license_number: str, email: str, password: str, 
+                 department: str = "", specialization: str = "") -> Doctor:
+        """Register a new doctor in the system."""
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+        doctor = cls(
+            name,
+            carestaff_id,
+            license_number,
+            email=email,
+            password=hashed_password,
+            department=department,
+            specialization=specialization,
+        )
+        # Save to carestaffs collection
+        DataStore.upsert("carestaffs", "carestaffID", doctor.to_dict())
+        return doctor
 
 
 class Nurse(CareStaff):
@@ -400,7 +463,7 @@ class Nurse(CareStaff):
     def administer_medication(self, patient_id: str, medication: Dict[str, str]) -> bool:
         return bool(patient_id and medication)
 
-    def update_vital_signs(self, patient_id: str, vitals: Dict[str, float]) -> bool:
+    def update_vital_signs(self,  patient_id: str, vitals: Dict[str, float]) -> bool:
         record = self.vital_signs.get(patient_id) or VitalSigns(
             record_id=f"vitals-{patient_id}",
             created_at=datetime.now(),
@@ -409,30 +472,38 @@ class Nurse(CareStaff):
         )
         record.record_vitals(vitals)
         self.vital_signs[patient_id] = record
+        DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
         return True
 
-    def coordinate_care(self, patient_id: str, care_plan: Dict[str, str]) -> bool:
+    def coordinate_care(self,  patient_id: str, care_plan: Dict[str, str]) -> bool:
         assignment = PatientAssignment(
             assignment_id=f"assign-{patient_id}-{self.staff_id}",
             assigned_date=datetime.now().date(),
             assignment_type=care_plan.get("type", "nursing"),
             notes=care_plan.get("notes", ""),
         )
-        return assignment.assign_patient(patient_id, self.staff_id)
+        if assignment.assign_patient(patient_id, self.staff_id):
+            DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
+            return True
+        return False
 
-    def manage_food_deliveries(self, delivery_id: str, action: str) -> bool:
+    def manage_food_deliveries(self,  delivery_id: str, action: str) -> bool:
         """Manage food deliveries: mark delivered, cancel, verify."""
         for delivery in self.food_deliveries:
             if delivery.delivery_id == delivery_id:
                 if action == "delivered":
-                    return delivery.update_delivery_status("delivered")
+                    if delivery.update_delivery_status("delivered"):
+                        DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
+                        return True
                 elif action == "cancel":
-                    return delivery.update_delivery_status("cancelled")
+                    if delivery.update_delivery_status("cancelled"):
+                        DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
+                        return True
                 elif action == "verify":
                     return True
         return False
 
-    def create_food_delivery(self, patient_id: str, food_items: str, room_number: int, scheduled_time: datetime) -> FoodToDeliver:
+    def create_food_delivery(self,  patient_id: str, food_items: str, room_number: int, scheduled_time: datetime) -> FoodToDeliver:
         """Create a new food delivery for a patient."""
         delivery = FoodToDeliver(
             delivery_id=f"del-{patient_id}-{len(self.food_deliveries) + 1}",
@@ -441,13 +512,14 @@ class Nurse(CareStaff):
             scheduled_time=scheduled_time,
         )
         self.food_deliveries.append(delivery)
+        DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
         return delivery
 
     def view_pending_tasks(self) -> List[Task]:
         """View all pending tasks assigned to this nurse."""
         return [task for task in self.tasks if task.status in ["pending", "in-progress"]]
 
-    def mark_medication_administered(self, patient_id: str, medication: Dict[str, str]) -> bool:
+    def mark_medication_administered(self,  patient_id: str, medication: Dict[str, str]) -> bool:
         """Mark that a medication has been administered to a patient."""
         if self.administer_medication(patient_id, medication):
             # Create a task record
@@ -461,6 +533,7 @@ class Nurse(CareStaff):
             )
             task.completed_at = datetime.now()
             self.tasks.append(task)
+            DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
             return True
         return False
 
@@ -482,7 +555,7 @@ class Nurse(CareStaff):
             }
         )
         return base
-
+    
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Nurse":
         return cls(
@@ -496,4 +569,30 @@ class Nurse(CareStaff):
             department=data.get("department", ""),
             specialization=data.get("specialization", ""),
         )
-
+    
+    @classmethod
+    def get_nurse_by_id(cls, nurse_id: str) -> Nurse | None:
+        """Get a nurse by ID from the datastore."""
+        data = DataStore.get_by_id("carestaffs", "carestaffID", nurse_id)
+        if data and data.get("role") == "nurse":
+            return cls.from_dict(data)
+        return None
+    
+    @classmethod
+    def register(cls, name: str, carestaff_id: str, license_number: str, email: str, password: str, 
+                 department: str = "", qualifications: List[str] = []) -> Nurse:
+        """Register a new nurse in the system."""
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+        nurse = cls(
+            name,
+            carestaff_id,
+            license_number,
+            email=email,
+            password=hashed_password,
+            department=department,
+            qualifications=qualifications,
+        )
+        # Save to carestaffs collection
+        DataStore.upsert("carestaffs", "carestaffID", nurse.to_dict())
+        return nurse
+    

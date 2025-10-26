@@ -4,6 +4,8 @@ from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+import bcrypt
+
 
 @dataclass
 class User:
@@ -26,7 +28,7 @@ class User:
         if not self.is_active:
             return False
 
-        if credentials.get("email") == self.email and credentials.get("password") == self.password:
+        if credentials.get("email") == self.email and bcrypt.checkpw(credentials.get("password").encode('utf-8'), self.password.encode('utf-8')):
             self.is_logged_in = True
             self.last_login_at = datetime.now()
             return True
@@ -40,6 +42,7 @@ class User:
 
     def update_profile(self, updates: Dict[str, Any]) -> bool:
         """Update mutable profile fields from the provided mapping."""
+        from app.datastore import DataStore
         allowed_fields = {"name", "email", "role"}
         updated = False
 
@@ -47,15 +50,20 @@ class User:
             if key in allowed_fields:
                 setattr(self, key, value)
                 updated = True
+        
+        if updated:
+            DataStore.upsert("users", "userID", self.to_dict())
         return updated
 
     def change_password(self, old_password: str, new_password: str) -> bool:
         """Change the password when the supplied old password matches."""
+        from app.datastore import DataStore
         if not new_password:
             return False
 
         if self.password == old_password:
             self.password = new_password
+            DataStore.upsert("users", "userID", self.to_dict())
             return True
         return False
 

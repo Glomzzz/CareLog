@@ -21,22 +21,28 @@ class Alert:
     status: str = "open"
 
     def acknowledge_alert(self, user: User) -> bool:
+        from app.datastore import DataStore
         if self.status == "open":
             self.status = "acknowledged"
             self.acknowledged_at = datetime.now()
+            DataStore.upsert("alerts", "alertID", self.to_dict())
             return True
         return False
 
     def resolve_alert(self, user: User) -> bool:
+        from app.datastore import DataStore
         if self.status in {"open", "acknowledged"}:
             self.status = "resolved"
             self.resolved_at = datetime.now()
+            DataStore.upsert("alerts", "alertID", self.to_dict())
             return True
         return False
 
     def escalate_alert(self) -> bool:
+        from app.datastore import DataStore
         if self.status != "resolved":
             self.severity = "critical"
+            DataStore.upsert("alerts", "alertID", self.to_dict())
             return True
         return False
 

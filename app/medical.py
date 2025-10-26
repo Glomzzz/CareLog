@@ -63,18 +63,22 @@ class MedicalDetails(MedicalRecord):
 
     def update_description(self, new_description: str) -> bool:
         """Update the descriptive summary of the current diagnosis."""
+        from app.datastore import DataStore
         if not new_description:
             return False
         self.description = new_description
         self.log_change({"description": new_description})
+        DataStore.upsert("medical_details", "recordID", self.to_dict())
         return True
 
     def update_medication(self, medication_list: List[str]) -> bool:
         """Replace the current medication plan with a new list."""
+        from app.datastore import DataStore
         if medication_list is None:
             return False
         self.medications = medication_list
         self.log_change({"medications": ",".join(medication_list)})
+        DataStore.upsert("medical_details", "recordID", self.to_dict())
         return True
 
     def medication_recommendation(self) -> List[str]:
@@ -135,38 +139,48 @@ class PatientLog(MedicalRecord):
     feedback: List[str] = field(default_factory=list)
 
     def update_personal_feeling(self, feeling: str) -> bool:
+        from app.datastore import DataStore
         if not feeling:
             return False
         self.personal_feeling = feeling
         self.log_change({"personal_feeling": feeling})
+        DataStore.upsert("patient_logs", "recordID", self.to_dict())
         return True
 
     def update_physical_condition(self, condition: str) -> bool:
+        from app.datastore import DataStore
         if not condition:
             return False
         self.physical_condition = condition
         self.log_change({"physical_condition": condition})
+        DataStore.upsert("patient_logs", "recordID", self.to_dict())
         return True
 
     def update_medical_condition(self, condition: str) -> bool:
+        from app.datastore import DataStore
         if not condition:
             return False
         self.medical_condition = condition
         self.log_change({"medical_condition": condition})
+        DataStore.upsert("patient_logs", "recordID", self.to_dict())
         return True
 
     def update_social_wellbeing(self, wellbeing: str) -> bool:
+        from app.datastore import DataStore
         if not wellbeing:
             return False
         self.social_well_being = wellbeing
         self.log_change({"social_well_being": wellbeing})
+        DataStore.upsert("patient_logs", "recordID", self.to_dict())
         return True
 
     def add_feedback(self, feedback: str) -> bool:
+        from app.datastore import DataStore
         if not feedback:
             return False
         self.feedback.append(feedback)
         self.log_change({"feedback": feedback})
+        DataStore.upsert("patient_logs", "recordID", self.to_dict())
         return True
 
     def analyze_trends(self) -> Dict[str, str]:
@@ -223,6 +237,7 @@ class VitalSigns(MedicalRecord):
     measured_at: datetime = field(default_factory=datetime.now)
 
     def record_vitals(self, vitals_data: Dict[str, float]) -> bool:
+        from app.datastore import DataStore
         if not vitals_data:
             return False
 
@@ -239,6 +254,7 @@ class VitalSigns(MedicalRecord):
                 setattr(self, field_name, vitals_data[field_name])
         self.measured_at = datetime.now()
         self.log_change({"measurement": self.measured_at.isoformat()})
+        DataStore.upsert("vital_signs", "recordID", self.to_dict())
         return True
 
     def detect_anomalies(self) -> List[str]:

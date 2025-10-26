@@ -18,23 +18,29 @@ class PatientAssignment:
     active: bool = True
 
     def assign_patient(self, patient_id: str, staff_id: str) -> bool:
+        from app.datastore import DataStore
         if not patient_id or not staff_id:
             return False
         self.patient_id = patient_id
         self.staff_id = staff_id
         self.active = True
+        DataStore.upsert("assignments", "assignmentID", self.to_dict())
         return True
 
     def transfer_patient(self, patient_id: str, new_staff_id: str) -> bool:
+        from app.datastore import DataStore
         if patient_id != self.patient_id:
             return False
         self.staff_id = new_staff_id
+        DataStore.upsert("assignments", "assignmentID", self.to_dict())
         return True
 
     def end_assignment(self, patient_id: str) -> bool:
+        from app.datastore import DataStore
         if patient_id != self.patient_id:
             return False
         self.active = False
+        DataStore.upsert("assignments", "assignmentID", self.to_dict())
         return True
 
     def to_dict(self) -> Dict[str, Any]:

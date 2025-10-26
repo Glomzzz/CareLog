@@ -33,7 +33,7 @@ class NurseCLI:
     def display_menu(self):
         """Display main menu options."""
         print(Fore.CYAN + "\n=== Main Menu ===")
-        print("1. Login")
+        print("1. Login/Register")
         print("2. View My Patients")
         print("3. View/Update Vital Signs")
         print("4. Administer Medication")
@@ -48,34 +48,54 @@ class NurseCLI:
         print("0. Exit")
         print(Fore.CYAN + "=" * 30)
 
-    def login(self):
-        """Handle nurse login."""
-        print(Fore.CYAN + "\n=== Nurse Login ===")
-        nurse_id = input("Enter Nurse ID: ").strip()
-        name = input("Enter Name: ").strip()
-        license_number = input("Enter License Number: ").strip()
-        email = input("Enter Email (optional): ").strip()
+    def register(self,id:str):
+        """Register a new nurse."""
+        print(Fore.CYAN + "\n=== Nurse Registration ===")
+        name = input("Enter Full Name: ").strip()
+        email = input("Enter Email: ").strip()
         password = input("Enter Password: ").strip()
+        license_number = input("Enter License Number: ").strip()
+        department = input("Enter Department: ").strip()
         qualifications = input("Enter Qualifications (comma-separated, optional): ").strip()
 
         qual_list = [q.strip() for q in qualifications.split(",")] if qualifications else []
 
-        self.current_nurse = Nurse(
+
+        new_nurse = Nurse.register(
             name=name,
-            carestaff_id=nurse_id,
+            carestaff_id=id,
             license_number=license_number,
-            email=email or f"{nurse_id}@carelog.local",
+            email=email,
             password=password,
+            department=department,
             qualifications=qual_list,
         )
+
+        if new_nurse:
+            print(Fore.GREEN + f"✓ Registration successful! Your Nurse ID is {new_nurse.staff_id}")
+            self.current_nurse = new_nurse
+        else:
+            print(Fore.RED + "✗ Registration failed. Please try again.")
+
+    def login(self):
+        """Handle nurse login."""
+        print(Fore.CYAN + "\n=== Nurse Login ===")
+        nurse_id = input("Enter Nurse ID: ").strip()
+
+        self.current_nurse = Nurse.get_nurse_by_id(nurse_id)
+        if not self.current_nurse:
+            if (input(Fore.YELLOW + "? Nurse not found. Register? (y/n): ").lower() == "y"):
+                self.register(nurse_id)
+            return
+        password = input("Enter Password: ").strip()
 
         # Attempt login
         credentials = {"email": self.current_nurse.email, "password": password}
         if self.current_nurse.login(credentials):
-            print(Fore.GREEN + f"\n✓ Welcome, Nurse {name}!")
-            print(Fore.GREEN + f"  License: {license_number}")
-            if qual_list:
-                print(Fore.GREEN + f"  Qualifications: {', '.join(qual_list)}")
+            print(Fore.GREEN + f"\n✓ Welcome, Nurse {self.current_nurse.name}!")
+            print(Fore.GREEN + f"  License: {self.current_nurse.license_number}")
+            if self.current_nurse.qualifications:
+                print(Fore.GREEN + f"  Qualifications: {', '.join(self.current_nurse.qualifications)}")
         else:
             print(Fore.RED + "✗ Login failed. Please check credentials.")
             self.current_nurse = None
@@ -491,6 +511,7 @@ class NurseCLI:
                 print(Fore.YELLOW + "\n\nOperation cancelled by user.")
             except Exception as e:
                 print(Fore.RED + f"✗ Error: {str(e)}")
+            input(Fore.WHITE + "\nPress Enter to continue...")
 
         print(Fore.CYAN + "Exiting...\n")
 

@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover
     from app.carestaff import CareStaff
-    from app.patient import Patient
 
 
 @dataclass
@@ -24,26 +23,34 @@ class Task:
 
     def assign_task(self, assignee: "CareStaff") -> bool:
         from app.carestaff import CareStaff
+        from app.datastore import DataStore
 
         if not isinstance(assignee, CareStaff):
             return False
         self.assignee_id = assignee.staff_id
         assignee.tasks.append(self)
+        DataStore.upsert("tasks", "taskID", self.to_dict())
         return True
 
     def update_progress(self, progress: str) -> bool:
+        from app.datastore import DataStore
         if not progress:
             return False
         self.status = progress
+        DataStore.upsert("tasks", "taskID", self.to_dict())
         return True
 
     def mark_complete(self) -> bool:
+        from app.datastore import DataStore
         self.status = "completed"
         self.completed_at = datetime.now()
+        DataStore.upsert("tasks", "taskID", self.to_dict())
         return True
 
     def escalate_task(self) -> bool:
+        from app.datastore import DataStore
         self.priority = "high"
+        DataStore.upsert("tasks", "taskID", self.to_dict())
         return True
 
     def to_dict(self) -> Dict[str, Any]:
@@ -106,28 +113,36 @@ class Schedule:
             return None
 
     def update_purpose(self, new_purpose: str) -> bool:
+        from app.datastore import DataStore
         if not new_purpose:
             return False
         self.purpose = new_purpose
+        DataStore.upsert("schedules", "scheduleID", self.to_dict())
         return True
 
     def update_staff(self, staff_list: List["CareStaff"]) -> bool:
+        from app.datastore import DataStore
         if staff_list is None:
             return False
         self.staff_list = [staff.staff_id for staff in staff_list]
+        DataStore.upsert("schedules", "scheduleID", self.to_dict())
         return True
 
     def update_location(self, new_location: str) -> bool:
+        from app.datastore import DataStore
         if not new_location:
             return False
         self.location = new_location
+        DataStore.upsert("schedules", "scheduleID", self.to_dict())
         return True
 
     def update_date_and_time(self, new_datetime: datetime) -> bool:
+        from app.datastore import DataStore
         if not isinstance(new_datetime, datetime):
             return False
         self.date_and_time = new_datetime
         self.date = new_datetime.date().isoformat()
+        DataStore.upsert("schedules", "scheduleID", self.to_dict())
         return True
 
     def check_availability(self) -> bool:
@@ -177,7 +192,7 @@ class Appointment:
     staff_id: Optional[str] = None
 
     @classmethod
-    def create_from_preferences(cls, patient: "Patient", preferences: Dict[str, Any]) -> "Appointment":
+    def create_from_preferences(cls, patient, preferences: Dict[str, Any]) -> "Appointment":
         preferred_time = preferences.get("date_and_time", datetime.now())
         appointment_type = preferences.get("type", "consultation")
         return cls(
@@ -190,17 +205,21 @@ class Appointment:
         )
 
     def change_date_or_time(self, new_datetime: datetime) -> bool:
+        from app.datastore import DataStore
         if not isinstance(new_datetime, datetime):
             return False
         self.date_and_time = new_datetime
+        DataStore.upsert("appointments", "appointmentID", self.to_dict())
         return True
 
     def change_staff(self, staff_member: "CareStaff") -> bool:
+        from app.datastore import DataStore
         from app.carestaff import CareStaff
 
         if not isinstance(staff_member, CareStaff):
             return False
         self.staff_id = staff_member.staff_id
+        DataStore.upsert("appointments", "appointmentID", self.to_dict())
         return True
 
     def send_reminders(self) -> bool:

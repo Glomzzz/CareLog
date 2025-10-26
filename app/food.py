@@ -18,11 +18,13 @@ class FoodToDeliver:
     special_instructions: str = ""
 
     def update_delivery_status(self, new_status: str) -> bool:
+        from app.datastore import DataStore
         if not new_status:
             return False
         self.status = new_status
         if new_status == "delivered":
             self.delivered_time = datetime.now()
+        DataStore.upsert("food_deliveries", "deliveryID", self.to_dict())
         return True
 
     def verify_allergies(self, patient) -> bool:
@@ -37,9 +39,11 @@ class FoodToDeliver:
         return True
 
     def handle_special_requests(self, request: str) -> bool:
+        from app.datastore import DataStore
         if not request:
             return False
         self.special_instructions = request
+        DataStore.upsert("food_deliveries", "deliveryID", self.to_dict())
         return True
 
     def to_dict(self) -> Dict[str, Any]:

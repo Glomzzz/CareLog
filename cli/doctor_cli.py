@@ -8,7 +8,7 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from colorama import Fore, Style, init
+from colorama import Fore, init
 
 from app.carestaff import Doctor
 from app.datastore import DataStore
@@ -33,7 +33,7 @@ class DoctorCLI:
     def display_menu(self):
         """Display main menu options."""
         print(Fore.CYAN + "\n=== Main Menu ===")
-        print("1. Login")
+        print("1. Login/Register")
         print("2. View My Patients")
         print("3. View Medical Records")
         print("4. Update Medical Details")
@@ -48,31 +48,49 @@ class DoctorCLI:
         print("0. Exit")
         print(Fore.CYAN + "=" * 30)
 
+    def register(self,id:str):
+        """Register a new doctor."""
+        print(Fore.CYAN + "\n=== Doctor Registration ===")
+        name = input("Enter Full Name: ").strip()
+        email = input("Enter Email: ").strip()
+        password = input("Enter Password: ").strip()
+        license_number = input("Enter License Number: ").strip()
+        department = input("Enter Department: ").strip()
+
+        new_doctor = Doctor.register(
+            name,
+            id,
+            license_number,
+            email,
+            password,
+            department=department,
+        )
+
+        if new_doctor:
+            print(Fore.GREEN + f"✓ Registration successful! Your Doctor ID is {new_doctor.staff_id}")
+            self.current_doctor = new_doctor
+        else:
+            print(Fore.RED + "✗ Registration failed. Please try again.")
+
     def login(self):
         """Handle doctor login."""
         print(Fore.CYAN + "\n=== Doctor Login ===")
         doctor_id = input("Enter Doctor ID: ").strip()
-        name = input("Enter Name: ").strip()
-        license_number = input("Enter License Number: ").strip()
-        email = input("Enter Email (optional): ").strip()
-        password = input("Enter Password: ").strip()
-        department = input("Enter Department (optional): ").strip()
+        
 
-        self.current_doctor = Doctor(
-            name=name,
-            carestaff_id=doctor_id,
-            license_number=license_number,
-            email=email or f"{doctor_id}@carelog.local",
-            password=password,
-            department=department or "General",
-        )
+        self.current_doctor = Doctor.get_doctor_by_id(doctor_id)
+        if not self.current_doctor:
+            if (input(Fore.YELLOW + "? Doctor not found. Register? (y/n): ").lower() == "y"):
+                self.register(doctor_id)
+            return
+        password = input("Enter Password: ").strip()
 
         # Attempt login
         credentials = {"email": self.current_doctor.email, "password": password}
         if self.current_doctor.login(credentials):
-            print(Fore.GREEN + f"\n✓ Welcome, Dr. {name}!")
+            print(Fore.GREEN + f"\n✓ Welcome, Dr. {self.current_doctor.name}!")
             print(Fore.GREEN + f"  Department: {self.current_doctor.department}")
-            print(Fore.GREEN + f"  License: {license_number}")
+            print(Fore.GREEN + f"  License: {self.current_doctor.license_number}")
         else:
             print(Fore.RED + "✗ Login failed. Please check credentials.")
             self.current_doctor = None
@@ -145,7 +163,7 @@ class DoctorCLI:
             print(Fore.YELLOW + "No information provided. Update cancelled.")
             return
 
-        if self.current_doctor.update_medical_details(patient_id, medical_info):
+        if self.current_doctor.update_medical_details( patient_id, medical_info):
             print(Fore.GREEN + f"✓ Medical details updated for patient {patient_id}")
         else:
             print(Fore.RED + "✗ Failed to update medical details")
@@ -167,7 +185,7 @@ class DoctorCLI:
         if frequency:
             medication["frequency"] = frequency
 
-        if self.current_doctor.prescribe_medication(patient_id, medication):
+        if self.current_doctor.prescribe_medication( patient_id, medication):
             print(Fore.GREEN + f"✓ Prescribed {medication_name} to patient {patient_id}")
         else:
             print(Fore.RED + f"✗ Failed to prescribe. Check if patient {patient_id} has medical records.")
@@ -189,7 +207,7 @@ class DoctorCLI:
         status_map = {"1": "approved", "2": "pending", "3": "rejected"}
         status = status_map.get(choice, "pending")
 
-        if self.current_doctor.approve_treatment_plans(patient_id, {"status": status}):
+        if self.current_doctor.approve_treatment_plans( patient_id, {"status": status}):
             print(Fore.GREEN + f"✓ Treatment plan {status} for patient {patient_id}")
         else:
             print(Fore.RED + f"✗ Failed to update treatment plan. Check if patient {patient_id} has medical records.")
@@ -203,7 +221,7 @@ class DoctorCLI:
         patient_id = input("Enter Patient ID: ").strip()
         specialist_type = input("Specialist Type (e.g., Cardiology, Neurology): ").strip()
 
-        if self.current_doctor.escalate_to_specialist(patient_id, specialist_type):
+        if self.current_doctor.escalate_to_specialist( patient_id, specialist_type):
             print(Fore.GREEN + f"✓ Case escalated to {specialist_type} for patient {patient_id}")
             print(Fore.YELLOW + "  Alert created and notification sent.")
         else:
@@ -233,19 +251,19 @@ class DoctorCLI:
 
         if choice == "1":
             appt_id = input("Enter Appointment ID: ").strip()
-            if self.current_doctor.add_appointment(appt_id):
+            if self.current_doctor.add_appointment( appt_id):
                 print(Fore.GREEN + f"✓ Appointment {appt_id} added")
             else:
                 print(Fore.RED + "✗ Appointment already exists")
         elif choice == "2":
             appt_id = input("Enter Appointment ID to approve: ").strip()
-            if self.current_doctor.manage_appointments(appt_id, "approve"):
+            if self.current_doctor.manage_appointments( appt_id, "approve"):
                 print(Fore.GREEN + f"✓ Appointment {appt_id} approved")
             else:
                 print(Fore.RED + "✗ Appointment not found")
         elif choice == "3":
             appt_id = input("Enter Appointment ID to cancel: ").strip()
-            if self.current_doctor.manage_appointments(appt_id, "cancel"):
+            if self.current_doctor.manage_appointments( appt_id, "cancel"):
                 print(Fore.GREEN + f"✓ Appointment {appt_id} cancelled")
             else:
                 print(Fore.RED + "✗ Appointment not found")
@@ -401,6 +419,7 @@ class DoctorCLI:
                 print(Fore.YELLOW + "\n\nOperation cancelled by user.")
             except Exception as e:
                 print(Fore.RED + f"✗ Error: {str(e)}")
+            input(Fore.WHITE + "\nPress Enter to continue...")
 
         print(Fore.CYAN + "Exiting...\n")
 
