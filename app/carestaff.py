@@ -13,6 +13,7 @@ from app.note import Note
 from app.schedule import Schedule, Task
 from app.user import User
 from app.food import FoodToDeliver
+from app.datastore import DataStore
 
 
 class CareStaff(User):
@@ -53,12 +54,11 @@ class CareStaff(User):
     # Persistence helpers
     # ---------------------------------------------------------------------
     def _load_data(self) -> Dict[str, List[Dict[str, str]]]:
-        with open("data/carelog.json", "r") as f:
-            return json.load(f)
+        # Maintain the same method name for backwards compatibility with tests
+        return DataStore.load_all()
 
     def _save_data(self, data: Dict[str, List[Dict[str, str]]]) -> None:
-        with open("data/carelog.json", "w") as f:
-            json.dump(data, f, indent=4)
+        DataStore.save_all(data)
 
     # ---------------------------------------------------------------------
     # Domain operations from the class diagram
