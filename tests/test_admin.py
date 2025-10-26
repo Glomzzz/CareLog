@@ -1,7 +1,7 @@
 import json
 import pytest
 from unittest.mock import mock_open, patch
-from users.admin import Admin
+from app.admin import Admin
 
 @pytest.fixture
 def admin_instance():
