@@ -1,0 +1,30 @@
+{
+    "patients": [
+        {
+            "patientID": "P1",
+            "name": "Alice Nguyen",
+            "disease": "Hypertension",
+            "high_risk": true
+        },
+        {
+            "patientID": "P2",
+            "name": "Bob Tran",
+            "disease": "Diabetes",
+            "high_risk": false
+        }
+    ],
+    "carestaffs": [
+        {
+            "carestaffID": "C1",
+            "name": "Sarah Le",
+            "password": "care123"
+        },
+        {
+            "carestaffID": "C2",
+            "name": "Duy Thien",
+            "password": "Duythien1"
+        }
+    ],
+    "notes": [],
+    "schedules": []
+}
