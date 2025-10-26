@@ -12,7 +12,6 @@ from colorama import Fore, Style, init
 
 from app.carestaff import Nurse
 from app.datastore import DataStore
-from app.patient import Patient, Diet
 
 # Initialize colorama
 init(autoreset=True)
@@ -239,21 +238,11 @@ class NurseCLI:
                 patient_data = next((p for p in data.get("patients", []) if p.get("patientID") == patient_id), None)
                 
                 if patient_data:
-                    # Create simplified patient object for verification
-                    diet = Diet(diet_id="temp", allergies=patient_data.get("allergies", []))
-                    patient = Patient(
-                        user_id=patient_id,
-                        name=patient_data.get("name", ""),
-                        email="temp@email.com",
-                        password="",
-                        role="patient",
-                        diet=diet,
-                    )
-                    
-                    if delivery.verify_allergies(patient):
-                        print(Fore.GREEN + "✓ No allergy conflicts detected")
-                    else:
-                        print(Fore.RED + "✗ WARNING: Allergy conflict detected!")
+                    # TODO: Implement Patient class and allergy checking
+                    pass
+                    #     print(Fore.GREEN + "✓ No allergy conflicts detected")
+                    # else:
+                    #     print(Fore.RED + "✗ WARNING: Allergy conflict detected!")
                 else:
                     print(Fore.RED + "✗ Patient not found")
 

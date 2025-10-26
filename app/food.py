@@ -4,8 +4,6 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from app.patient import Patient
-
 
 @dataclass
 class FoodToDeliver:
@@ -27,7 +25,7 @@ class FoodToDeliver:
             self.delivered_time = datetime.now()
         return True
 
-    def verify_allergies(self, patient: Patient) -> bool:
+    def verify_allergies(self, patient) -> bool:
         if patient.diet:
             return patient.diet.check_allergies(self.food_items)
         return True

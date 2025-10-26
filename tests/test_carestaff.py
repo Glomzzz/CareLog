@@ -7,7 +7,6 @@ from app.alerts import Alert, NotificationService
 from app.carestaff import CareStaff, Doctor, Nurse
 from app.food import FoodToDeliver
 from app.medical import MedicalDetails, VitalSigns
-from app.patient import Patient, Diet
 from app.schedule import Schedule, Task
 from app.assignment import PatientAssignment
 

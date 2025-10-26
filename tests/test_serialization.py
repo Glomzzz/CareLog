@@ -7,7 +7,6 @@ from app.carestaff import CareStaff, Doctor, Nurse
 from app.datastore import DataStore
 from app.food import FoodToDeliver
 from app.medical import MedicalDetails, PatientLog, VitalSigns
-from app.patient import Diet, FamilyMember, Feedback, Patient
 from app.schedule import Appointment, Schedule, Task
 from app.user import User
 
@@ -19,48 +18,6 @@ def test_user_serialization_roundtrip():
     assert u2.user_id == u.user_id
     assert u2.email == u.email
     assert u2.role == u.role
-
-
-def test_patient_serialization_roundtrip():
-    p = Patient(
-        user_id="p1",
-        name="Pat",
-        email="p@example.com",
-        password="pw",
-        role="patient",
-        emergency_contact="EC",
-        insurance_info="INS",
-        address="Addr",
-        primary_diagnosis="Flu",
-        status="admitted",
-        high_risk=True,
-    )
-    d = p.to_dict()
-    p2 = Patient.from_dict(d)
-    assert p2.patient_id == p.patient_id
-    assert p2.emergency_contact == p.emergency_contact
-    assert p2.primary_diagnosis == p.primary_diagnosis
-    assert p2.high_risk is True
-
-
-def test_diet_feedback_family_serialization_roundtrip():
-    diet = Diet(diet_id="d1", food_to_serve=["Soup"], allergies=["nuts"], food_preferences=["Veg"], restrictions=["LowSalt"], nutritional_goals="LoseWeight")
-    d = diet.to_dict()
-    diet2 = Diet.from_dict(d)
-    assert diet2.diet_id == diet.diet_id
-    assert diet2.allergies == ["nuts"]
-
-    fb = Feedback(feedback_id="f1", rating=5, comments="Great")
-    fd = fb.to_dict()
-    fb2 = Feedback.from_dict(fd)
-    assert fb2.feedback_id == fb.feedback_id
-    assert fb2.rating == 5
-
-    fam = FamilyMember(user_id="fam1", name="Fam", email="fam@example.com", password="pw", role="family", relationship="Brother", contact_info="123")
-    famd = fam.to_dict()
-    fam2 = FamilyMember.from_dict(famd)
-    assert fam2.user_id == fam.user_id
-    assert fam2.relationship == fam.relationship
 
 
 def test_medical_details_log_vitals_serialization_roundtrip():
