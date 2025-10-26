@@ -52,6 +52,27 @@ class Diet:
             "restrictions": self.restrictions,
         }
 
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "dietID": self.diet_id,
+            "foodToServe": list(self.food_to_serve),
+            "allergies": list(self.allergies),
+            "foodPreferences": list(self.food_preferences),
+            "restrictions": list(self.restrictions),
+            "nutritionalGoals": self.nutritional_goals,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "Diet":
+        return cls(
+            diet_id=data.get("dietID", ""),
+            food_to_serve=list(data.get("foodToServe", [])),
+            allergies=list(data.get("allergies", [])),
+            food_preferences=list(data.get("foodPreferences", [])),
+            restrictions=list(data.get("restrictions", [])),
+            nutritional_goals=data.get("nutritionalGoals", ""),
+        )
+
 
 @dataclass
 class Feedback:
@@ -61,7 +82,7 @@ class Feedback:
     rating: int
     comments: str
     category: str = "general"
-    submitted_at: datetime = field(default_factory=datetime.utcnow)
+    submitted_at: datetime = field(default_factory=datetime.now)
     status: str = "open"
     actions_taken: List[str] = field(default_factory=list)
 
@@ -86,6 +107,29 @@ class Feedback:
     def track_resolution(self) -> bool:
         """Consider the feedback resolved once an action is recorded."""
         return bool(self.actions_taken)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "feedbackID": self.feedback_id,
+            "rating": self.rating,
+            "comments": self.comments,
+            "category": self.category,
+            "submittedAt": self.submitted_at.isoformat(),
+            "status": self.status,
+            "actionsTaken": list(self.actions_taken),
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "Feedback":
+        return cls(
+            feedback_id=data.get("feedbackID", ""),
+            rating=int(data.get("rating", 0)),
+            comments=data.get("comments", ""),
+            category=data.get("category", "general"),
+            submitted_at=datetime.fromisoformat(data.get("submittedAt")) if data.get("submittedAt") else datetime.now(),
+            status=data.get("status", "open"),
+            actions_taken=list(data.get("actionsTaken", [])),
+        )
 
 
 @dataclass
@@ -167,6 +211,23 @@ class Patient(User):
             "status": self.status,
         }
 
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "Patient":
+        # Map incoming dict to User base + Patient fields
+        return cls(
+            user_id=data.get("patientID", ""),
+            name=data.get("name", ""),
+            email=data.get("email", ""),
+            password=data.get("password", ""),
+            role=data.get("role", "patient"),
+            emergency_contact=data.get("emergencyContact", ""),
+            insurance_info=data.get("insuranceInfo", ""),
+            address=data.get("address", ""),
+            primary_diagnosis=data.get("disease", ""),
+            status=data.get("status", "admitted"),
+            high_risk=bool(data.get("high_risk", False)),
+        )
+
 
 @dataclass
 class FamilyMember(User):
@@ -202,3 +263,29 @@ class FamilyMember(User):
                 patient.diet.update_food_preferences(preferences.get("food_preferences", []))
                 return True
         return False
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "userID": self.user_id,
+            "name": self.name,
+            "email": self.email,
+            "password": self.password,
+            "role": self.role,
+            "relationship": self.relationship,
+            "contactInfo": self.contact_info,
+            "isEmergencyContact": self.is_emergency_contact,
+            "linkedPatients": [p.patient_id for p in self.linked_patients],
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "FamilyMember":
+        return cls(
+            user_id=data.get("userID", ""),
+            name=data.get("name", ""),
+            email=data.get("email", ""),
+            password=data.get("password", ""),
+            role=data.get("role", "family"),
+            relationship=data.get("relationship", ""),
+            contact_info=data.get("contactInfo", ""),
+            is_emergency_contact=bool(data.get("isEmergencyContact", False)),
+        )

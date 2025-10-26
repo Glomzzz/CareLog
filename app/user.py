@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from typing import Any, Dict, Optional
 
@@ -14,7 +14,7 @@ class User:
     email: str
     password: str
     role: str
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=datetime.now)
     is_active: bool = True
     is_logged_in: bool = field(default=False, init=False)
     last_login_at: Optional[datetime] = field(default=None, init=False)
@@ -28,7 +28,7 @@ class User:
 
         if credentials.get("email") == self.email and credentials.get("password") == self.password:
             self.is_logged_in = True
-            self.last_login_at = datetime.utcnow()
+            self.last_login_at = datetime.now()
             return True
         return False
 
@@ -36,7 +36,7 @@ class User:
         """Record a logout event when the user is currently signed in."""
         if self.is_logged_in:
             self.is_logged_in = False
-            self.last_logout_at = datetime.utcnow()
+            self.last_logout_at = datetime.now()
 
     def update_profile(self, updates: Dict[str, Any]) -> bool:
         """Update mutable profile fields from the provided mapping."""
@@ -58,3 +58,30 @@ class User:
             self.password = new_password
             return True
         return False
+
+    # -----------------------------
+    # Serialization helpers
+    # -----------------------------
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "userID": self.user_id,
+            "name": self.name,
+            "email": self.email,
+            "password": self.password,
+            "role": self.role,
+            "createdAt": self.created_at.isoformat(),
+            "isActive": self.is_active,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "User":
+        created = data.get("createdAt")
+        created_dt = datetime.fromisoformat(created) if isinstance(created, str) else datetime.now()
+        return cls(
+            user_id=data.get("userID", ""),
+            name=data.get("name", ""),
+            email=data.get("email", ""),
+            password=data.get("password", ""),
+            role=data.get("role", ""),
+            created_at=created_dt,
+        )

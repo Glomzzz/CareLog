@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from app.patient import Patient
 
@@ -24,7 +24,7 @@ class FoodToDeliver:
             return False
         self.status = new_status
         if new_status == "delivered":
-            self.delivered_time = datetime.utcnow()
+            self.delivered_time = datetime.now()
         return True
 
     def verify_allergies(self, patient: Patient) -> bool:
@@ -43,3 +43,26 @@ class FoodToDeliver:
             return False
         self.special_instructions = request
         return True
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "deliveryID": self.delivery_id,
+            "foodItems": self.food_items,
+            "roomNumber": self.room_number,
+            "scheduledTime": self.scheduled_time.isoformat(),
+            "deliveredTime": self.delivered_time.isoformat() if self.delivered_time else None,
+            "status": self.status,
+            "specialInstructions": self.special_instructions,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "FoodToDeliver":
+        return cls(
+            delivery_id=data.get("deliveryID", ""),
+            food_items=data.get("foodItems", ""),
+            room_number=int(data.get("roomNumber", 0)),
+            scheduled_time=datetime.fromisoformat(data.get("scheduledTime")) if data.get("scheduledTime") else datetime.now(),
+            delivered_time=datetime.fromisoformat(data.get("deliveredTime")) if data.get("deliveredTime") else None,
+            status=data.get("status", "scheduled"),
+            special_instructions=data.get("specialInstructions", ""),
+        )

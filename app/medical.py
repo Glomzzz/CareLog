@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List
+from typing import Any, Dict, List
 
 
 @dataclass
@@ -17,7 +17,7 @@ class MedicalRecord:
 
     def __post_init__(self) -> None:
         # Default timestamps to now when not explicitly provided.
-        now = datetime.utcnow()
+        now = datetime.now()
         if not isinstance(self.created_at, datetime):
             self.created_at = now
         if not isinstance(self.updated_at, datetime):
@@ -34,7 +34,19 @@ class MedicalRecord:
     def log_change(self, change: Dict[str, str]) -> None:
         """Append a change entry and update the modification timestamp."""
         self.history.append(change)
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now()
+
+    # -----------------------------
+    # Serialization helpers
+    # -----------------------------
+    def to_base_dict(self) -> Dict[str, Any]:
+        return {
+            "recordID": self.record_id,
+            "createdAt": self.created_at.isoformat(),
+            "updatedAt": self.updated_at.isoformat(),
+            "createdBy": self.created_by,
+            "history": list(self.history),
+        }
 
 
 @dataclass
@@ -76,6 +88,39 @@ class MedicalDetails(MedicalRecord):
             "last_updated": self.updated_at.isoformat(),
             "treatments_completed": str(len(self.history)),
         }
+
+    def to_dict(self) -> Dict[str, Any]:
+        base = self.to_base_dict()
+        base.update(
+            {
+                "type": "MedicalDetails",
+                "sicknessName": self.sickness_name,
+                "department": self.department,
+                "severity": self.severity,
+                "description": self.description,
+                "medications": list(self.medications),
+                "treatments": list(self.treatments),
+                "status": self.status,
+            }
+        )
+        return base
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "MedicalDetails":
+        return cls(
+            record_id=data.get("recordID", ""),
+            created_at=datetime.fromisoformat(data.get("createdAt")) if data.get("createdAt") else datetime.now(),
+            updated_at=datetime.fromisoformat(data.get("updatedAt")) if data.get("updatedAt") else datetime.now(),
+            created_by=data.get("createdBy", ""),
+            history=list(data.get("history", [])),
+            sickness_name=data.get("sicknessName", ""),
+            department=data.get("department", ""),
+            severity=data.get("severity", ""),
+            description=data.get("description", ""),
+            medications=list(data.get("medications", [])),
+            treatments=list(data.get("treatments", [])),
+            status=data.get("status", "Pending"),
+        )
 
 
 @dataclass
@@ -132,6 +177,37 @@ class PatientLog(MedicalRecord):
             "feedback_count": str(len(self.feedback)),
         }
 
+    def to_dict(self) -> Dict[str, Any]:
+        base = self.to_base_dict()
+        base.update(
+            {
+                "type": "PatientLog",
+                "personalFeeling": self.personal_feeling,
+                "physicalCondition": self.physical_condition,
+                "medicalCondition": self.medical_condition,
+                "socialWellBeing": self.social_well_being,
+                "personalNeeds": dict(self.personal_needs),
+                "feedback": list(self.feedback),
+            }
+        )
+        return base
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "PatientLog":
+        return cls(
+            record_id=data.get("recordID", ""),
+            created_at=datetime.fromisoformat(data.get("createdAt")) if data.get("createdAt") else datetime.now(),
+            updated_at=datetime.fromisoformat(data.get("updatedAt")) if data.get("updatedAt") else datetime.now(),
+            created_by=data.get("createdBy", ""),
+            history=list(data.get("history", [])),
+            personal_feeling=data.get("personalFeeling", ""),
+            physical_condition=data.get("physicalCondition", ""),
+            medical_condition=data.get("medicalCondition", ""),
+            social_well_being=data.get("socialWellBeing", ""),
+            personal_needs=dict(data.get("personalNeeds", {})),
+            feedback=list(data.get("feedback", [])),
+        )
+
 
 @dataclass
 class VitalSigns(MedicalRecord):
@@ -144,7 +220,7 @@ class VitalSigns(MedicalRecord):
     blood_pressure_diastolic: int = 0
     respiratory_rate: int = 0
     oxygen_saturation: float = 0.0
-    measured_at: datetime = field(default_factory=datetime.utcnow)
+    measured_at: datetime = field(default_factory=datetime.now)
 
     def record_vitals(self, vitals_data: Dict[str, float]) -> bool:
         if not vitals_data:
@@ -161,7 +237,7 @@ class VitalSigns(MedicalRecord):
         ):
             if field_name in vitals_data:
                 setattr(self, field_name, vitals_data[field_name])
-        self.measured_at = datetime.utcnow()
+        self.measured_at = datetime.now()
         self.log_change({"measurement": self.measured_at.isoformat()})
         return True
 
@@ -183,3 +259,38 @@ class VitalSigns(MedicalRecord):
             "last_reading": self.measured_at.isoformat(),
             "anomalies": ", ".join(self.detect_anomalies()) or "None",
         }
+
+    def to_dict(self) -> Dict[str, Any]:
+        base = self.to_base_dict()
+        base.update(
+            {
+                "type": "VitalSigns",
+                "measurementID": self.measurement_id,
+                "temperature": self.temperature,
+                "heartRate": self.heart_rate,
+                "bloodPressureSystolic": self.blood_pressure_systolic,
+                "bloodPressureDiastolic": self.blood_pressure_diastolic,
+                "respiratoryRate": self.respiratory_rate,
+                "oxygenSaturation": self.oxygen_saturation,
+                "measuredAt": self.measured_at.isoformat(),
+            }
+        )
+        return base
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "VitalSigns":
+        return cls(
+            record_id=data.get("recordID", ""),
+            created_at=datetime.fromisoformat(data.get("createdAt")) if data.get("createdAt") else datetime.now(),
+            updated_at=datetime.fromisoformat(data.get("updatedAt")) if data.get("updatedAt") else datetime.now(),
+            created_by=data.get("createdBy", ""),
+            history=list(data.get("history", [])),
+            measurement_id=data.get("measurementID", ""),
+            temperature=float(data.get("temperature", 0.0)),
+            heart_rate=int(data.get("heartRate", 0)),
+            blood_pressure_systolic=int(data.get("bloodPressureSystolic", 0)),
+            blood_pressure_diastolic=int(data.get("bloodPressureDiastolic", 0)),
+            respiratory_rate=int(data.get("respiratoryRate", 0)),
+            oxygen_saturation=float(data.get("oxygenSaturation", 0.0)),
+            measured_at=datetime.fromisoformat(data.get("measuredAt")) if data.get("measuredAt") else datetime.now(),
+        )

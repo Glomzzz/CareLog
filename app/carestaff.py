@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from colorama import Fore, Style
 
@@ -144,6 +144,30 @@ class CareStaff(User):
 
         print(Fore.RED + "Patient not found." + Style.RESET_ALL)
 
+    # -----------------------------
+    # Serialization helpers
+    # -----------------------------
+    def to_dict(self) -> Dict[str, str]:
+        return {
+            "carestaffID": self.staff_id,
+            "name": self.name,
+            "email": self.email,
+            "department": self.department,
+            "specialization": self.specialization,
+            "role": self.role,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, str]) -> "CareStaff":
+        return cls(
+            name=data.get("name", ""),
+            carestaff_id=data.get("carestaffID", ""),
+            email=data.get("email", ""),
+            password=data.get("password", ""),
+            department=data.get("department", ""),
+            specialization=data.get("specialization", ""),
+        )
+
 
 class Doctor(CareStaff):
     """Specialised care staff capable of managing medical treatment plans."""
@@ -169,8 +193,8 @@ class Doctor(CareStaff):
     def update_medical_details(self, patient_id: str, medical_info: Dict[str, str]) -> bool:
         record = self.patient_records.get(patient_id) or MedicalDetails(
             record_id=f"med-{patient_id}",
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow(),
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
             created_by=self.staff_id,
             sickness_name=medical_info.get("sickness_name", ""),
             department=medical_info.get("department", self.department),
@@ -208,6 +232,32 @@ class Doctor(CareStaff):
         self.alerts.append(alert)
         return True
 
+    def to_dict(self) -> Dict[str, str]:
+        base = super().to_dict()
+        base.update(
+            {
+                "role": "doctor",
+                "licenseNumber": self.license_number,
+                "certifications": list(self.certifications),
+                "workToDo": self.work_to_do,
+            }
+        )
+        return base
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "Doctor":
+        return cls(
+            name=data.get("name", ""),
+            carestaff_id=data.get("carestaffID", ""),
+            license_number=data.get("licenseNumber", ""),
+            email=data.get("email", ""),
+            password=data.get("password", ""),
+            certifications=list(data.get("certifications", [])),
+            work_to_do=data.get("workToDo", ""),
+            department=data.get("department", ""),
+            specialization=data.get("specialization", ""),
+        )
+
 
 class Nurse(CareStaff):
     """Care staff member focused on day-to-day patient support."""
@@ -236,8 +286,8 @@ class Nurse(CareStaff):
     def update_vital_signs(self, patient_id: str, vitals: Dict[str, float]) -> bool:
         record = self.vital_signs.get(patient_id) or VitalSigns(
             record_id=f"vitals-{patient_id}",
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow(),
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
             created_by=self.staff_id,
         )
         record.record_vitals(vitals)
@@ -247,9 +297,35 @@ class Nurse(CareStaff):
     def coordinate_care(self, patient_id: str, care_plan: Dict[str, str]) -> bool:
         assignment = PatientAssignment(
             assignment_id=f"assign-{patient_id}-{self.staff_id}",
-            assigned_date=datetime.utcnow().date(),
+            assigned_date=datetime.now().date(),
             assignment_type=care_plan.get("type", "nursing"),
             notes=care_plan.get("notes", ""),
         )
         return assignment.assign_patient(patient_id, self.staff_id)
+
+    def to_dict(self) -> Dict[str, str]:
+        base = super().to_dict()
+        base.update(
+            {
+                "role": "nurse",
+                "licenseNumber": self.license_number,
+                "qualifications": list(self.qualifications),
+                "workToDo": self.work_to_do,
+            }
+        )
+        return base
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "Nurse":
+        return cls(
+            name=data.get("name", ""),
+            carestaff_id=data.get("carestaffID", ""),
+            license_number=data.get("licenseNumber", ""),
+            email=data.get("email", ""),
+            password=data.get("password", ""),
+            qualifications=list(data.get("qualifications", [])),
+            work_to_do=data.get("workToDo", ""),
+            department=data.get("department", ""),
+            specialization=data.get("specialization", ""),
+        )
 

@@ -58,7 +58,7 @@ def test_diet_and_food_delivery():
         delivery_id="del1",
         food_items="Nut-Free Meal",
         room_number=101,
-        scheduled_time=datetime.utcnow(),
+        scheduled_time=datetime.now(),
     )
     assert delivery.verify_allergies(patient) is True
     assert delivery.update_delivery_status("delivered") is True
@@ -161,8 +161,8 @@ def test_feedback_and_medical_logs():
 
     log = PatientLog(
         record_id="log1",
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow(),
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
         created_by="staff1",
     )
     assert log.update_personal_feeling("Happy") is True
@@ -170,8 +170,8 @@ def test_feedback_and_medical_logs():
 
     vitals = VitalSigns(
         record_id="v1",
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow(),
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
         created_by="staff2",
     )
     assert vitals.record_vitals({"temperature": 37.5, "heart_rate": 80}) is True

@@ -39,12 +39,35 @@ class Task:
 
     def mark_complete(self) -> bool:
         self.status = "completed"
-        self.completed_at = datetime.utcnow()
+        self.completed_at = datetime.now()
         return True
 
     def escalate_task(self) -> bool:
         self.priority = "high"
         return True
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "taskID": self.task_id,
+            "title": self.title,
+            "description": self.description,
+            "priority": self.priority,
+            "status": self.status,
+            "dueDate": self.due_date.isoformat(),
+            "completedAt": self.completed_at.isoformat() if self.completed_at else None,
+            "assigneeID": self.assignee_id,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "Task":
+        return cls(
+            task_id=data.get("taskID", ""),
+            title=data.get("title", ""),
+            description=data.get("description", ""),
+            priority=data.get("priority", "normal"),
+            status=data.get("status", "pending"),
+            due_date=datetime.fromisoformat(data.get("dueDate")) if data.get("dueDate") else datetime.now(),
+        )
 
 
 class Schedule:
@@ -124,6 +147,21 @@ class Schedule:
             "recurrence": self.recurrence,
         }
 
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "Schedule":
+        return cls(
+            carestaff_id=data.get("carestaffID", ""),
+            task=data.get("task", ""),
+            date=data.get("date", ""),
+            schedule_id=data.get("scheduleID"),
+            purpose=data.get("purpose"),
+            priority=data.get("priority", "normal"),
+            location=data.get("location", ""),
+            date_and_time=datetime.fromisoformat(data.get("dateAndTime")) if data.get("dateAndTime") else None,
+            estimated_duration=int(data.get("estimatedDuration", 0)),
+            recurrence=data.get("recurrence", "none"),
+        )
+
 
 @dataclass
 class Appointment:
@@ -140,10 +178,10 @@ class Appointment:
 
     @classmethod
     def create_from_preferences(cls, patient: "Patient", preferences: Dict[str, Any]) -> "Appointment":
-        preferred_time = preferences.get("date_and_time", datetime.utcnow())
+        preferred_time = preferences.get("date_and_time", datetime.now())
         appointment_type = preferences.get("type", "consultation")
         return cls(
-            appointment_id=f"appt-{patient.patient_id}-{int(datetime.utcnow().timestamp())}",
+            appointment_id=f"appt-{patient.patient_id}-{int(datetime.now().timestamp())}",
             patient_id=patient.patient_id,
             date_and_time=preferred_time,
             type=appointment_type,
@@ -174,3 +212,28 @@ class Appointment:
 
     def reschedule(self, new_datetime: datetime) -> bool:
         return self.change_date_or_time(new_datetime)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "appointmentID": self.appointment_id,
+            "patientID": self.patient_id,
+            "dateAndTime": self.date_and_time.isoformat(),
+            "type": self.type,
+            "status": self.status,
+            "notes": self.notes,
+            "duration": self.duration,
+            "staffID": self.staff_id,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "Appointment":
+        return cls(
+            appointment_id=data.get("appointmentID", ""),
+            patient_id=data.get("patientID", ""),
+            date_and_time=datetime.fromisoformat(data.get("dateAndTime")) if data.get("dateAndTime") else datetime.now(),
+            type=data.get("type", "consultation"),
+            status=data.get("status", "requested"),
+            notes=data.get("notes", ""),
+            duration=int(data.get("duration", 30)),
+            staff_id=data.get("staffID"),
+        )
