@@ -83,6 +83,72 @@ class CareStaff(User):
             "tasks_completed": str(sum(1 for t in self.tasks if t.status == "completed")),
         }
 
+    def view_schedules(self) -> List[Schedule]:
+        """View all schedules assigned to this care staff member."""
+        return list(self.work_schedule)
+
+    def manage_tasks(self, task_id: str, action: str) -> bool:
+        """Manage tasks by updating status or reassigning."""
+        for task in self.tasks:
+            if task.task_id == task_id:
+                if action == "complete":
+                    return task.mark_complete()
+                elif action == "escalate":
+                    return task.escalate_task()
+                elif action.startswith("update:"):
+                    status = action.split(":", 1)[1]
+                    return task.update_progress(status)
+        return False
+
+    def view_assigned_patients(self) -> List[str]:
+        """Return list of patient IDs assigned to this staff member."""
+        return list(self.assigned_patients)
+
+    def send_notification(self, recipient_id: str, message: str, priority: str = "normal") -> bool:
+        """Send a notification through the notification service."""
+        if not self.notification_service:
+            return False
+        # Create a mock user for notification
+        from app.user import User
+        recipient = User(user_id=recipient_id, name="Recipient", email=f"{recipient_id}@carelog.local", 
+                        password="", role="staff")
+        return self.notification_service.send_immediate_alert(recipient, message)
+
+    def handle_alert(self, alert_id: str, action: str = "acknowledge") -> bool:
+        """Handle an alert by acknowledging or resolving it."""
+        for alert in self.alerts:
+            if alert.alert_id == alert_id:
+                if action == "acknowledge":
+                    return alert.acknowledge_alert(self)
+                elif action == "resolve":
+                    return alert.resolve_alert(self)
+        return False
+
+    def assign_patient(self, patient_id: str) -> bool:
+        """Assign a patient to this care staff member."""
+        if patient_id not in self.assigned_patients:
+            self.assigned_patients.append(patient_id)
+            assignment = PatientAssignment(
+                assignment_id=f"assign-{patient_id}-{self.staff_id}",
+                assigned_date=datetime.now().date(),
+                assignment_type="primary",
+                notes=f"Assigned to {self.name}",
+            )
+            assignment.assign_patient(patient_id, self.staff_id)
+            self.assignments.append(assignment)
+            return True
+        return False
+
+    def unassign_patient(self, patient_id: str) -> bool:
+        """Remove a patient from this care staff member's assignment."""
+        if patient_id in self.assigned_patients:
+            self.assigned_patients.remove(patient_id)
+            for assignment in self.assignments:
+                if assignment.patient_id == patient_id:
+                    assignment.end_assignment(patient_id)
+            return True
+        return False
+
     # ---------------------------------------------------------------------
     # Existing CLI-driven operations (retained for backwards compatibility)
     # ---------------------------------------------------------------------
@@ -232,6 +298,57 @@ class Doctor(CareStaff):
         self.alerts.append(alert)
         return True
 
+    def manage_appointments(self, appointment_id: str, action: str) -> bool:
+        """Manage appointments: approve, reschedule, cancel."""
+        if appointment_id in self.appointment_list:
+            if action == "approve":
+                return True
+            elif action == "cancel":
+                self.appointment_list.remove(appointment_id)
+                return True
+        return False
+
+    def view_medical_records(self, patient_id: str) -> Dict[str, Any]:
+        """View medical records for a specific patient."""
+        record = self.patient_records.get(patient_id)
+        if record:
+            return record.to_dict()
+        return {}
+
+    def generate_treatment_report(self, patient_id: str) -> Dict[str, str]:
+        """Generate a treatment report for a patient."""
+        record = self.patient_records.get(patient_id)
+        if not record:
+            return {"error": "No record found"}
+        return {
+            "patient_id": patient_id,
+            "doctor": self.name,
+            "diagnosis": record.sickness_name,
+            "medications": ", ".join(record.medications) if record.medications else "None",
+            "status": record.status,
+            "last_updated": record.updated_at.isoformat(),
+        }
+
+    def review_patient_history(self, patient_id: str) -> List[str]:
+        """Review patient medical history from records."""
+        record = self.patient_records.get(patient_id)
+        if record:
+            # Extract change descriptions from history
+            return [
+                change.get("description", "") or 
+                change.get("medications", "") or 
+                str(change) 
+                for change in record.history
+            ]
+        return []
+
+    def add_appointment(self, appointment_id: str) -> bool:
+        """Add an appointment to the doctor's schedule."""
+        if appointment_id not in self.appointment_list:
+            self.appointment_list.append(appointment_id)
+            return True
+        return False
+
     def to_dict(self) -> Dict[str, str]:
         base = super().to_dict()
         base.update(
@@ -302,6 +419,57 @@ class Nurse(CareStaff):
             notes=care_plan.get("notes", ""),
         )
         return assignment.assign_patient(patient_id, self.staff_id)
+
+    def manage_food_deliveries(self, delivery_id: str, action: str) -> bool:
+        """Manage food deliveries: mark delivered, cancel, verify."""
+        for delivery in self.food_deliveries:
+            if delivery.delivery_id == delivery_id:
+                if action == "delivered":
+                    return delivery.update_delivery_status("delivered")
+                elif action == "cancel":
+                    return delivery.update_delivery_status("cancelled")
+                elif action == "verify":
+                    return True
+        return False
+
+    def create_food_delivery(self, patient_id: str, food_items: str, room_number: int, scheduled_time: datetime) -> FoodToDeliver:
+        """Create a new food delivery for a patient."""
+        delivery = FoodToDeliver(
+            delivery_id=f"del-{patient_id}-{len(self.food_deliveries) + 1}",
+            food_items=food_items,
+            room_number=room_number,
+            scheduled_time=scheduled_time,
+        )
+        self.food_deliveries.append(delivery)
+        return delivery
+
+    def view_pending_tasks(self) -> List[Task]:
+        """View all pending tasks assigned to this nurse."""
+        return [task for task in self.tasks if task.status in ["pending", "in-progress"]]
+
+    def mark_medication_administered(self, patient_id: str, medication: Dict[str, str]) -> bool:
+        """Mark that a medication has been administered to a patient."""
+        if self.administer_medication(patient_id, medication):
+            # Create a task record
+            task = Task(
+                task_id=f"med-{patient_id}-{datetime.now().timestamp()}",
+                title=f"Administer {medication.get('name', 'medication')}",
+                description=f"Administered to patient {patient_id}",
+                priority="normal",
+                status="completed",
+                due_date=datetime.now(),
+            )
+            task.completed_at = datetime.now()
+            self.tasks.append(task)
+            return True
+        return False
+
+    def get_patient_vitals(self, patient_id: str) -> Dict[str, Any]:
+        """Retrieve vital signs for a specific patient."""
+        vitals = self.vital_signs.get(patient_id)
+        if vitals:
+            return vitals.to_dict()
+        return {}
 
     def to_dict(self) -> Dict[str, str]:
         base = super().to_dict()
