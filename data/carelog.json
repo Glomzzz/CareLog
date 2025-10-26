@@ -1,0 +1,17 @@
+{
+    "patients": [
+
+    ],
+    "carestaffs": [
+
+    ],
+    "admins": [
+        {
+            "name": "Jack",
+            "adminID": "A1",
+            "phone": "012-9876543",
+            "email": "jack1234@gmail.com",
+            "password": "jack_6543"
+        }
+    ]
+}
