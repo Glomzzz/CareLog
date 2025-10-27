@@ -18,7 +18,7 @@ DataStore.upsert(collection_name, id_key, self.to_dict())
 - `change_password()` - Password changes
 
 **Collection:** `"users"`  
-**ID Key:** `"userID"`
+**ID Key:** `"id"`
 
 ### 2. app/alerts.py
 **Methods updated:**
