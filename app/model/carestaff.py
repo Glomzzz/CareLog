@@ -7,14 +7,14 @@ from typing import Any, Dict, List
 from colorama import Fore, Style
 import bcrypt
 
-from app.alerts import Alert, NotificationService
-from app.assignment import PatientAssignment
-from app.medical import MedicalDetails, VitalSigns
-from app.note import Note
-from app.schedule import Schedule, Task
-from app.user import User
-from app.food import FoodToDeliver
-from app.datastore import DataStore
+from app.model.schedule import Schedule, Task
+from app.data.datastore import DataStore
+from .alerts import Alert, NotificationService
+from .assignment import PatientAssignment
+from .medical import MedicalDetails, VitalSigns
+from .note import Note
+from .user import User
+from .food import FoodToDeliver
 
 salt = bcrypt.gensalt()
 
@@ -65,7 +65,7 @@ class CareStaff(User):
     def save(self) -> bool:
         """Persist this carestaff instance to the DataStore."""
         try:
-            DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
+            DataStore.upsert("carestaffs", "id", self.to_dict())
             return True
         except Exception:
             return False
@@ -80,7 +80,7 @@ class CareStaff(User):
     def update_patient_records(self, patient_id: str, updates: Dict[str, str]) -> bool:
         data = self._load_data()
         for patient in data.get("patients", []):
-            if patient.get("patientID") == patient_id:
+            if patient.get("id") == patient_id:
                 patient.update(updates)
                 self._save_data(data)
                 return True
@@ -128,7 +128,7 @@ class CareStaff(User):
         if not self.notification_service:
             return False
         # Create a mock user for notification
-        from app.user import User
+        from .user import User
         recipient = User(user_id=recipient_id, name="Recipient", email=f"{recipient_id}@carelog.local", 
                         password="", role="staff")
         return self.notification_service.send_immediate_alert(recipient, message)
@@ -194,17 +194,17 @@ class CareStaff(User):
         data = self._load_data()
         print(Fore.CYAN + "Search results:" + Style.RESET_ALL)
         for patient in data.get("patients", []):
-            if keyword.lower() in patient.get("name", "").lower() or keyword.lower() in patient.get("patientID", "").lower():
+            if keyword.lower() in patient.get("name", "").lower() or keyword.lower() in patient.get("id", "").lower():
                 risk_color = Fore.YELLOW if patient.get("high_risk") else Fore.WHITE
                 print(
                     risk_color
-                    + f"ID: {patient.get('patientID')} | Name: {patient.get('name')} | Disease: {patient.get('disease')}"
+                    + f"ID: {patient.get('id')} | Name: {patient.get('name')} | Disease: {patient.get('disease')}"
                     + Style.RESET_ALL
                 )
 
     def view_notes(self, patient_id: str) -> None:
         data = self._load_data()
-        found = [note for note in data.get("notes", []) if note.get("patientID") == patient_id]
+        found = [note for note in data.get("notes", []) if note.get("id") == patient_id]
         if not found:
             print(Fore.RED + "No notes found for this patient." + Style.RESET_ALL)
             return
@@ -224,7 +224,7 @@ class CareStaff(User):
     def toggle_high_risk(self, patient_id: str) -> None:
         data = self._load_data()
         for patient in data.get("patients", []):
-            if patient.get("patientID") == patient_id:
+            if patient.get("id") == patient_id:
                 patient["high_risk"] = not patient.get("high_risk", False)
                 self._save_data(data)
                 if patient["high_risk"]:
@@ -240,7 +240,7 @@ class CareStaff(User):
     # -----------------------------
     def to_dict(self) -> Dict[str, str]:
         return {
-            "carestaffID": self.staff_id,
+            "id": self.staff_id,
             "name": self.name,
             "email": self.email,
             "password": self.password,
@@ -253,7 +253,7 @@ class CareStaff(User):
     def from_dict(cls, data: Dict[str, str]) -> "CareStaff":
         return cls(
             name=data.get("name", ""),
-            carestaff_id=data.get("carestaffID", ""),
+            carestaff_id=data.get("id", ""),
             email=data.get("email", ""),
             password=data.get("password", ""),
             department=data.get("department", ""),
@@ -261,7 +261,7 @@ class CareStaff(User):
         )
     @classmethod
     def get_carestaff_by_id(cls, carestaff_id: str) -> CareStaff | None:
-        data = DataStore.get_by_id("carestaffs", "carestaffID", carestaff_id)
+        data = DataStore.get_by_id("carestaffs", "id", carestaff_id)
         if data:
             return cls.from_dict(data)
         return None
@@ -301,7 +301,7 @@ class Doctor(CareStaff):
         if "medications" in medical_info:
             record.update_medication(medical_info["medications"])
         self.patient_records[patient_id] = record
-        DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
+        DataStore.upsert("carestaffs", "id", self.to_dict())
         return True
 
     def prescribe_medication(self,  patient_id: str, medication: Dict[str, str]) -> bool:
@@ -311,7 +311,7 @@ class Doctor(CareStaff):
         meds = list(record.medications)
         meds.append(medication.get("name", ""))
         record.update_medication(meds)
-        DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
+        DataStore.upsert("carestaffs", "id", self.to_dict())
         return True
 
     def approve_treatment_plans(self,  patient_id: str, plan: Dict[str, str]) -> bool:
@@ -319,7 +319,7 @@ class Doctor(CareStaff):
         if not record:
             return False
         record.status = plan.get("status", "approved")
-        DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
+        DataStore.upsert("carestaffs", "id", self.to_dict())
         return True
 
     def escalate_to_specialist(self,  patient_id: str, specialist_type: str) -> bool:
@@ -330,7 +330,7 @@ class Doctor(CareStaff):
             message=f"Escalate {patient_id} to {specialist_type}",
         )
         self.alerts.append(alert)
-        DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
+        DataStore.upsert("carestaffs", "id", self.to_dict())
         return True
 
     def manage_appointments(self,  appointment_id: str, action: str) -> bool:
@@ -340,7 +340,7 @@ class Doctor(CareStaff):
                 return True
             elif action == "cancel":
                 self.appointment_list.remove(appointment_id)
-                DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
+                DataStore.upsert("carestaffs", "id", self.to_dict())
                 return True
         return False
 
@@ -382,7 +382,7 @@ class Doctor(CareStaff):
         """Add an appointment to the doctor's schedule."""
         if appointment_id not in self.appointment_list:
             self.appointment_list.append(appointment_id)
-            DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
+            DataStore.upsert("carestaffs", "id", self.to_dict())
             return True
         return False
 
@@ -402,7 +402,7 @@ class Doctor(CareStaff):
     def from_dict(cls, data: Dict[str, Any]) -> "Doctor":
         return cls(
             name=data.get("name", ""),
-            carestaff_id=data.get("carestaffID", ""),
+            carestaff_id=data.get("id", ""),
             license_number=data.get("licenseNumber", ""),
             email=data.get("email", ""),
             password=data.get("password", ""),
@@ -415,7 +415,7 @@ class Doctor(CareStaff):
     @classmethod
     def get_doctor_by_id(cls, doctor_id: str) -> Doctor | None:
         """Get a doctor by ID from the datastore."""
-        data = DataStore.get_by_id("carestaffs", "carestaffID", doctor_id)
+        data = DataStore.get_by_id("carestaffs", "id", doctor_id)
         if data and data.get("role") == "doctor":
             return cls.from_dict(data)
         return None
@@ -435,7 +435,7 @@ class Doctor(CareStaff):
             specialization=specialization,
         )
         # Save to carestaffs collection
-        DataStore.upsert("carestaffs", "carestaffID", doctor.to_dict())
+        DataStore.upsert("carestaffs", "id", doctor.to_dict())
         return doctor
 
 
@@ -472,7 +472,7 @@ class Nurse(CareStaff):
         )
         record.record_vitals(vitals)
         self.vital_signs[patient_id] = record
-        DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
+        DataStore.upsert("carestaffs", "id", self.to_dict())
         return True
 
     def coordinate_care(self,  patient_id: str, care_plan: Dict[str, str]) -> bool:
@@ -483,7 +483,7 @@ class Nurse(CareStaff):
             notes=care_plan.get("notes", ""),
         )
         if assignment.assign_patient(patient_id, self.staff_id):
-            DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
+            DataStore.upsert("carestaffs", "id", self.to_dict())
             return True
         return False
 
@@ -493,11 +493,11 @@ class Nurse(CareStaff):
             if delivery.delivery_id == delivery_id:
                 if action == "delivered":
                     if delivery.update_delivery_status("delivered"):
-                        DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
+                        DataStore.upsert("carestaffs", "id", self.to_dict())
                         return True
                 elif action == "cancel":
                     if delivery.update_delivery_status("cancelled"):
-                        DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
+                        DataStore.upsert("carestaffs", "id", self.to_dict())
                         return True
                 elif action == "verify":
                     return True
@@ -512,7 +512,7 @@ class Nurse(CareStaff):
             scheduled_time=scheduled_time,
         )
         self.food_deliveries.append(delivery)
-        DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
+        DataStore.upsert("carestaffs", "id", self.to_dict())
         return delivery
 
     def view_pending_tasks(self) -> List[Task]:
@@ -533,7 +533,7 @@ class Nurse(CareStaff):
             )
             task.completed_at = datetime.now()
             self.tasks.append(task)
-            DataStore.upsert("carestaffs", "carestaffID", self.to_dict())
+            DataStore.upsert("carestaffs", "id", self.to_dict())
             return True
         return False
 
@@ -560,7 +560,7 @@ class Nurse(CareStaff):
     def from_dict(cls, data: Dict[str, Any]) -> "Nurse":
         return cls(
             name=data.get("name", ""),
-            carestaff_id=data.get("carestaffID", ""),
+            carestaff_id=data.get("id", ""),
             license_number=data.get("licenseNumber", ""),
             email=data.get("email", ""),
             password=data.get("password", ""),
@@ -573,7 +573,7 @@ class Nurse(CareStaff):
     @classmethod
     def get_nurse_by_id(cls, nurse_id: str) -> Nurse | None:
         """Get a nurse by ID from the datastore."""
-        data = DataStore.get_by_id("carestaffs", "carestaffID", nurse_id)
+        data = DataStore.get_by_id("carestaffs", "id", nurse_id)
         if data and data.get("role") == "nurse":
             return cls.from_dict(data)
         return None
@@ -593,6 +593,6 @@ class Nurse(CareStaff):
             qualifications=qualifications,
         )
         # Save to carestaffs collection
-        DataStore.upsert("carestaffs", "carestaffID", nurse.to_dict())
+        DataStore.upsert("carestaffs", "id", nurse.to_dict())
         return nurse
     

@@ -10,8 +10,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from colorama import Fore, Style, init
 
-from app.carestaff import Nurse
-from app.datastore import DataStore
+from app.model.carestaff import Nurse
+from app.data.datastore import DataStore
 
 # Initialize colorama
 init(autoreset=True)
@@ -32,7 +32,7 @@ class NurseCLI:
 
     def display_menu(self):
         """Display main menu options."""
-        print(Fore.CYAN + "\n=== Main Menu ===")
+        print(Fore.CYAN + "\n=== Nurse Menu ===")
         print("1. Login/Register")
         print("2. View My Patients")
         print("3. View/Update Vital Signs")
@@ -115,7 +115,7 @@ class NurseCLI:
 
         for i, patient in enumerate(patients, 1):
             risk_marker = Fore.RED + " [HIGH RISK]" if patient.get("high_risk") else ""
-            print(f"{i}. {Fore.WHITE}ID: {patient.get('patientID')} | "
+            print(f"{i}. {Fore.WHITE}ID: {patient.get('id')} | "
                   f"Name: {patient.get('name')} | "
                   f"Disease: {patient.get('disease', 'N/A')}{risk_marker}")
 
@@ -244,7 +244,7 @@ class NurseCLI:
             print("3. Verify Allergies")
             
             action = input("Select action: ").strip()
-            
+
             if action == "1":
                 if self.current_nurse.manage_food_deliveries(delivery.delivery_id, "delivered"):
                     print(Fore.GREEN + f"✓ Delivery {delivery.delivery_id} marked as delivered")
@@ -254,17 +254,29 @@ class NurseCLI:
             elif action == "3":
                 patient_id = input("Enter Patient ID to verify allergies: ").strip()
                 # Load patient data
-                data = DataStore.load_all()
-                patient_data = next((p for p in data.get("patients", []) if p.get("patientID") == patient_id), None)
-                
-                if patient_data:
-                    # TODO: Implement Patient class and allergy checking
-                    pass
-                    #     print(Fore.GREEN + "✓ No allergy conflicts detected")
-                    # else:
-                    #     print(Fore.RED + "✗ WARNING: Allergy conflict detected!")
-                else:
+                patients = DataStore.get_collection("patients")
+                patient_data = next((p for p in patients if p.get("id") == patient_id), None)
+
+                if not patient_data:
                     print(Fore.RED + "✗ Patient not found")
+                    return
+
+                # Basic allergy check: compare listed allergies against food items
+                allergies = [a.lower() for a in patient_data.get("allergies", [])]
+                items = [it.strip().lower() for it in delivery.food_items.split(",")] if isinstance(delivery.food_items, str) else [str(delivery.food_items).lower()]
+
+                conflicts = []
+                for allergen in allergies:
+                    for item in items:
+                        if allergen and allergen in item:
+                            conflicts.append((allergen, item))
+
+                if conflicts:
+                    print(Fore.RED + "✗ WARNING: Allergy conflict(s) detected!")
+                    for a, itm in conflicts:
+                        print(Fore.RED + f"  - Allergen '{a}' found in menu item '{itm}'")
+                else:
+                    print(Fore.GREEN + "✓ No allergy conflicts detected")
 
     def create_food_delivery(self):
         """Create a new food delivery."""

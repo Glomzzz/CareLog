@@ -18,7 +18,7 @@ class PatientAssignment:
     active: bool = True
 
     def assign_patient(self, patient_id: str, staff_id: str) -> bool:
-        from app.datastore import DataStore
+        from app.data.datastore import DataStore
         if not patient_id or not staff_id:
             return False
         self.patient_id = patient_id
@@ -28,7 +28,7 @@ class PatientAssignment:
         return True
 
     def transfer_patient(self, patient_id: str, new_staff_id: str) -> bool:
-        from app.datastore import DataStore
+        from app.data.datastore import DataStore
         if patient_id != self.patient_id:
             return False
         self.staff_id = new_staff_id
@@ -36,7 +36,7 @@ class PatientAssignment:
         return True
 
     def end_assignment(self, patient_id: str) -> bool:
-        from app.datastore import DataStore
+        from app.data.datastore import DataStore
         if patient_id != self.patient_id:
             return False
         self.active = False
@@ -49,8 +49,8 @@ class PatientAssignment:
             "assignedDate": self.assigned_date.isoformat(),
             "assignmentType": self.assignment_type,
             "notes": self.notes,
-            "patientID": self.patient_id,
-            "staffID": self.staff_id,
+            "id": self.patient_id,
+            "id": self.staff_id,
             "active": self.active,
         }
 
@@ -61,7 +61,7 @@ class PatientAssignment:
             assigned_date=date.fromisoformat(data.get("assignedDate")) if data.get("assignedDate") else date.today(),
             assignment_type=data.get("assignmentType", ""),
             notes=data.get("notes", ""),
-            patient_id=data.get("patientID"),
-            staff_id=data.get("staffID"),
+            patient_id=data.get("id"),
+            staff_id=data.get("id"),
             active=bool(data.get("active", True)),
         )

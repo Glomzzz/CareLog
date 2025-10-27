@@ -10,8 +10,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from colorama import Fore, init
 
-from app.carestaff import Doctor
-from app.datastore import DataStore
+from app.model.carestaff import Doctor
+from app.data.datastore import DataStore
 
 # Initialize colorama
 init(autoreset=True)
@@ -32,7 +32,7 @@ class DoctorCLI:
 
     def display_menu(self):
         """Display main menu options."""
-        print(Fore.CYAN + "\n=== Main Menu ===")
+        print(Fore.CYAN + "\n=== Doctor Menu ===")
         print("1. Login/Register")
         print("2. View My Patients")
         print("3. View Medical Records")
@@ -110,7 +110,7 @@ class DoctorCLI:
 
         for i, patient in enumerate(patients, 1):
             risk_marker = Fore.RED + " [HIGH RISK]" if patient.get("high_risk") else ""
-            print(f"{i}. {Fore.WHITE}ID: {patient.get('patientID')} | "
+            print(f"{i}. {Fore.WHITE}ID: {patient.get('id')} | "
                   f"Name: {patient.get('name')} | "
                   f"Disease: {patient.get('disease', 'N/A')}{risk_marker}")
 

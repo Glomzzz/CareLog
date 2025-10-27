@@ -3,12 +3,12 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from app.alerts import Alert, NotificationService
-from app.carestaff import CareStaff, Doctor, Nurse
-from app.food import FoodToDeliver
-from app.medical import MedicalDetails, VitalSigns
-from app.schedule import Schedule, Task
-from app.assignment import PatientAssignment
+from app.model.alerts import Alert, NotificationService
+from app.model.carestaff import CareStaff, Doctor, Nurse
+from app.model.food import FoodToDeliver
+from app.model.medical import MedicalDetails, VitalSigns
+from app.model.schedule import Schedule, Task
+from app.model.assignment import PatientAssignment
 
 
 @pytest.fixture
@@ -16,8 +16,8 @@ def mock_datastore(monkeypatch):
     """Mock datastore for testing."""
     store = {
         "patients": [
-            {"patientID": "p1", "name": "Alice", "disease": "Flu", "high_risk": False},
-            {"patientID": "p2", "name": "Bob", "disease": "Cold", "high_risk": True},
+            {"id": "p1", "name": "Alice", "disease": "Flu", "high_risk": False},
+            {"id": "p2", "name": "Bob", "disease": "Cold", "high_risk": True},
         ],
         "notes": [],
         "schedules": [],
@@ -26,6 +26,8 @@ def mock_datastore(monkeypatch):
 
     monkeypatch.setattr(CareStaff, "_load_data", lambda self: store)
     monkeypatch.setattr(CareStaff, "_save_data", lambda self, data: store.update(data))
+    
+    
     return store
 
 
@@ -201,7 +203,7 @@ class TestCareStaff:
         staff = CareStaff("Amelia", "cs015", email="amelia@hospital.com", department="ICU")
         data = staff.to_dict()
         
-        assert data["carestaffID"] == "cs015"
+        assert data["id"] == "cs015"
         assert data["name"] == "Amelia"
         assert data["department"] == "ICU"
         

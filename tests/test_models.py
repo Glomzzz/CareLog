@@ -1,12 +1,9 @@
 from datetime import datetime
 
-from app.alerts import Alert, NotificationService
-from app.assignment import PatientAssignment
-from app.carestaff import CareStaff, Doctor, Nurse
-from app.food import FoodToDeliver
-from app.medical import PatientLog, VitalSigns
-from app.schedule import Schedule, Task
-from app.user import User
+from app.model.alerts import Alert, NotificationService
+from app.model.carestaff import CareStaff, Doctor, Nurse
+from app.model.schedule import Task
+from app.model.user import User
 
 
 def test_user_login_logout_flow():

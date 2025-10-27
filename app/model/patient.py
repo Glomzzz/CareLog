@@ -23,7 +23,7 @@ except ImportError:
             except Exception:
                 return False
 
-class Patient:
+class   Patient:
     """
     Patient class represents a user in the CareLog system.
     Stores personal information and handles password hashing and PHI encryption.

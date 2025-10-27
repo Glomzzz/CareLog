@@ -1,14 +1,14 @@
 from datetime import datetime
 from pathlib import Path
 
-from app.alerts import Alert, NotificationService
-from app.assignment import PatientAssignment
-from app.carestaff import CareStaff, Doctor, Nurse
-from app.datastore import DataStore
-from app.food import FoodToDeliver
-from app.medical import MedicalDetails, PatientLog, VitalSigns
-from app.schedule import Appointment, Schedule, Task
-from app.user import User
+from app.data.datastore import DataStore
+from app.model.alerts import Alert, NotificationService
+from app.model.assignment import PatientAssignment
+from app.model.carestaff import CareStaff, Doctor, Nurse
+from app.model.food import FoodToDeliver
+from app.model.medical import MedicalDetails, PatientLog, VitalSigns
+from app.model.schedule import Appointment, Schedule, Task
+from app.model.user import User
 
 
 def test_user_serialization_roundtrip():
@@ -154,11 +154,11 @@ def test_datastore_crud_roundtrip(tmp_path):
     assert set(all_data.keys()) >= {"patients", "carestaffs", "notes", "schedules"}
 
     # Upsert + get
-    patient_dict = {"patientID": "PX1", "name": "Pat X", "disease": "None", "high_risk": False}
-    DataStore.upsert("patients", "patientID", patient_dict)
-    fetched = DataStore.get_by_id("patients", "patientID", "PX1")
+    patient_dict = {"id": "PX1", "name": "Pat X", "disease": "None", "high_risk": False}
+    DataStore.upsert("patients", "id", patient_dict)
+    fetched = DataStore.get_by_id("patients", "id", "PX1")
     assert fetched is not None and fetched["name"] == "Pat X"
 
     # Delete
-    assert DataStore.delete_by_id("patients", "patientID", "PX1") is True
-    assert DataStore.get_by_id("patients", "patientID", "PX1") is None
+    assert DataStore.delete_by_id("patients", "id", "PX1") is True
+    assert DataStore.get_by_id("patients", "id", "PX1") is None

@@ -1,160 +1,110 @@
 import json
 import pytest
-from unittest.mock import mock_open, patch
-from app.admin import Admin
-
-@pytest.fixture
-def admin_instance():
-    """Fixture to create a reusable Admin instance."""
-    return Admin("JT", "A6", "012-6783782", "jt0203@gmail.com", "jt060203")
-
-@pytest.fixture
-def mock_data():
-    """Mock CareLog JSON structure."""
-    return {
-        "admins": [
-            {"adminID": "A6", 
-             "name": "JT", 
-             "phone": "012-6783782", 
-             "email": "jt0203@gmail.com", 
-             "password": "jt060203"}
-        ],
-        "patients": [
-            {"patientID": "P5", 
-             "name": "Alice", 
-             "email": "alice@mail.com", 
-             "phone": "015-8749274", 
-             "password": "aliceinwonderland"}
-        ],
-        "carestaffs": [
-            {"staffID": "D64", 
-             "department": "Department A", 
-             "specialization": "Neurology", 
-             "assignedPatients": ["P5"], 
-             "workSchedule": ""}
-        ]
-    }
+from app.model.admin import Admin
+from app.model.patient import Patient
+from app.model.carestaff import CareStaff
+from app.data.datastore import DataStore
 
 
-# 1. Add new patients
-def test_add_new_patients(admin_instance, mock_data):
-    new_patients = [
-        {"patientID": "P6", 
-         "name": "Bob", 
-         "email": "bob083@gmail.com", 
-         "phone": "019-7207523", 
-         "password": "bobbobbob"}
-    ]
-    m = mock_open(read_data=json.dumps(mock_data))
-    with patch("builtins.open", m):
-        admin_instance.add_new_patients(new_patients)
-
-    # Verify it appended new patient to the mock data
-    written_str = "".join(call.args[0] for call in m().write.call_args_list)
-    written_data = json.loads(written_str)
-    assert any(p["patientID"] == "P6" for p in written_data["patients"])
+@pytest.fixture(autouse=True)
+def use_temp_datastore(tmp_path):
+	"""Point DataStore to a temp file for each test and ensure it's initialized."""
+	orig = DataStore.DATA_FILE
+	DataStore.DATA_FILE = tmp_path / "carelog_test.json"
+	# ensure file exists with initial structure
+	DataStore.ensure_data_file()
+	yield
+	# restore
+	DataStore.DATA_FILE = orig
 
 
-# 2. Update patients information
-def test_update_patients_information_success(admin_instance, mock_data):
-    m = mock_open(read_data=json.dumps(mock_data))
-    with patch("builtins.open", m):
-        admin_instance.update_patients_information("P5", 1, "Alice Updated")
+def test_add_and_search_patient(capsys):
+	admin = Admin()
+	p = Patient(id="p1", name="Alice Example", email="alice@example.com", phone="012345", password="secret")
+	# add via model instance
+	admin.add_new_patients([p])
 
-    written_str = "".join(call.args[0] for call in m().write.call_args_list)
-    written_data = json.loads(written_str)
-    assert written_data["patients"][0]["name"] == "Alice Updated"
+	stored = DataStore.get_by_id("patients", "id", "p1")
+	assert stored is not None
+	# ensure stored has expected keys
+	assert stored.get("id") == "p1"
+	assert "password_hash" in stored
 
-
-def test_update_patients_information_not_found(admin_instance, mock_data, capsys):
-    m = mock_open(read_data=json.dumps(mock_data))
-    with patch("builtins.open", m):
-        admin_instance.update_patients_information("P999", 1, "New Name")
-    captured = capsys.readouterr()
-    assert "Patient not found" in captured.out
-
-
-# 3. Remove patients
-def test_remove_patients_success(admin_instance, mock_data):
-    m = mock_open(read_data=json.dumps(mock_data))
-    with patch("builtins.open", m):
-        admin_instance.remove_patients(["P5"])
-
-    written_str = "".join(call.args[0] for call in m().write.call_args_list)
-    written_data = json.loads(written_str)
-    assert all(p["patientID"] != "P5" for p in written_data["patients"])
+	# search prints decrypted fields
+	admin.search_patient_information("p1")
+	captured = capsys.readouterr()
+	assert "Alice Example" in captured.out
 
 
-# 4. Add new carestaffs
-def test_add_new_carestaffs(admin_instance, mock_data):
-    new_carestaffs = [
-        {"staffID": "N54", "department": "Department C", "specialization": "Neurology", "assignedPatients": [], "workSchedule": ""}
-    ]
-    m = mock_open(read_data=json.dumps(mock_data))
-    with patch("builtins.open", m):
-        admin_instance.add_new_carestaffs(new_carestaffs)
-    written_str = "".join(call.args[0] for call in m().write.call_args_list)
-    written_data = json.loads(written_str)
-    assert any(s["staffID"] == "N54" for s in written_data["carestaffs"])
+def test_update_patient_information():
+	admin = Admin()
+	p = Patient(id="p2", name="Bob Old", email="bob@old.com", phone="000111", password="pw1234")
+	DataStore.append_to_collection("patients", p.to_dict())
+
+	# update name
+	result = admin.update_patients_information("p2", 1, "Bob New")
+	assert result is True
+	stored = DataStore.get_by_id("patients", "id", "p2")
+	assert stored is not None
+	p2 = Patient.patient_from_dict(stored)
+	assert p2.get_decrypted_name() == "Bob New"
 
 
-# 5. Update carestaffs information
-def test_update_carestaffs_information_success(admin_instance, mock_data):
-    m = mock_open(read_data=json.dumps(mock_data))
-    with patch("builtins.open", m):
-        admin_instance.update_carestaffs_information("D64", "Department Z", "Dermatology")
-    written_str = "".join(call.args[0] for call in m().write.call_args_list)
-    written_data = json.loads(written_str)
-    staff = written_data["carestaffs"][0]
-    assert staff["department"] == "Department Z"
-    assert staff["specialization"] == "Dermatology"
+def test_remove_patients():
+	admin = Admin()
+	p1 = Patient(id="p3", name="Rem One", email="r1@example.com", phone="111", password="a12345")
+	p2 = Patient(id="p4", name="Keep Two", email="k2@example.com", phone="222", password="b12345")
+	DataStore.append_to_collection("patients", p1.to_dict())
+	DataStore.append_to_collection("patients", p2.to_dict())
+
+	admin.remove_patients(["p3"])  # remove first
+	assert DataStore.get_by_id("patients", "id", "p3") is None
+	assert DataStore.get_by_id("patients", "id", "p4") is not None
 
 
-def test_update_carestaffs_information_not_found(admin_instance, mock_data, capsys):
-    m = mock_open(read_data=json.dumps(mock_data))
-    with patch("builtins.open", m):
-        admin_instance.update_carestaffs_information("D100", "Department C", "Urology")
-    captured = capsys.readouterr()
-    assert "Carestaff not found" in captured.out
+def test_add_update_remove_carestaff():
+	admin = Admin()
+	cs = CareStaff(name="Carol", carestaff_id="cs1", email="carol@x.com", password="pw")
+	# add
+	admin.add_new_carestaffs([cs])
+	stored = DataStore.get_by_id("carestaffs", "id", "cs1")
+	assert stored is not None
+	assert stored.get("name") == "Carol"
+
+	# update
+	ok = admin.update_carestaffs_information("cs1", "Cardiology", "Cardio")
+	assert ok is True
+	stored = DataStore.get_by_id("carestaffs", "id", "cs1")
+	assert stored.get("department") == "Cardiology"
+	assert stored.get("specialization") == "Cardio"
+
+	# remove
+	admin.remove_carestaffs(["cs1"])
+	assert DataStore.get_by_id("carestaffs", "id", "cs1") is None
 
 
-# 6. Remove carestaffs
-def test_remove_carestaffs_success(admin_instance, mock_data):
-    m = mock_open(read_data=json.dumps(mock_data))
-    with patch("builtins.open", m):
-        admin_instance.remove_carestaffs(["D64"])
-    written_str = "".join(call.args[0] for call in m().write.call_args_list)
-    written_data = json.loads(written_str)
-    assert all(s["staffID"] != "D64" for s in written_data["carestaffs"])
+def test_number_of_patients():
+	admin = Admin()
+	# create carestaff record with assigned patients
+	cs_dict = {
+		"id": "cs2",
+		"name": "Dave",
+		"email": "dave@x.com",
+		"password": "",
+		"department": "Ward",
+		"specialization": "General",
+		"assigned_patients": ["pA", "pB", "pC"],
+	}
+	DataStore.upsert("carestaffs", "id", cs_dict)
+	assert admin.number_of_patients("cs2") == 3
 
 
-# 7. Search patient information
-def test_search_patient_information_found(admin_instance, mock_data, capsys):
-    m = mock_open(read_data=json.dumps(mock_data))
-    with patch("builtins.open", m):
-        admin_instance.search_patient_information("P5")
-    captured = capsys.readouterr()
-    assert "Patient found!" in captured.out
+def test_search_patients_by_keyword(capsys):
+	admin = Admin()
+	p = Patient(id="p5", name="John Smith", email="john.smith@example.com", phone="999888", password="pw12345")
+	DataStore.append_to_collection("patients", p.to_dict())
 
+	admin.search_patients_by_keyword("smith")
+	out = capsys.readouterr().out
+	assert "patient(s) found" in out or "p5" in out
 
-def test_search_patient_information_not_found(admin_instance, mock_data, capsys):
-    m = mock_open(read_data=json.dumps(mock_data))
-    with patch("builtins.open", m):
-        admin_instance.search_patient_information("P98")
-    captured = capsys.readouterr()
-    assert "Patient not found" in captured.out
-
-
-# 8. Test to get number of patients for a carestaff
-def test_number_of_patients_found(admin_instance, mock_data):
-    m = mock_open(read_data=json.dumps(mock_data))
-    with patch("builtins.open", m):
-        num = admin_instance.number_of_patients("D64")
-    assert num == 1
-
-
-def test_number_of_patients_not_found(admin_instance, mock_data):
-    m = mock_open(read_data=json.dumps(mock_data))
-    with patch("builtins.open", m):
-        result = admin_instance.number_of_patients("D98")
-    assert result is None

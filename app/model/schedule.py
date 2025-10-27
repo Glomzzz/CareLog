@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover
-    from app.carestaff import CareStaff
+    from app.model.carestaff import CareStaff
 
 
 @dataclass
@@ -22,8 +22,8 @@ class Task:
     assignee_id: Optional[str] = None
 
     def assign_task(self, assignee: "CareStaff") -> bool:
-        from app.carestaff import CareStaff
-        from app.datastore import DataStore
+        from app.model.carestaff import CareStaff
+        from app.data.datastore import DataStore
 
         if not isinstance(assignee, CareStaff):
             return False
@@ -33,7 +33,7 @@ class Task:
         return True
 
     def update_progress(self, progress: str) -> bool:
-        from app.datastore import DataStore
+        from app.data.datastore import DataStore
         if not progress:
             return False
         self.status = progress
@@ -41,14 +41,14 @@ class Task:
         return True
 
     def mark_complete(self) -> bool:
-        from app.datastore import DataStore
+        from app.data.datastore import DataStore
         self.status = "completed"
         self.completed_at = datetime.now()
         DataStore.upsert("tasks", "taskID", self.to_dict())
         return True
 
     def escalate_task(self) -> bool:
-        from app.datastore import DataStore
+        from app.data.datastore import DataStore
         self.priority = "high"
         DataStore.upsert("tasks", "taskID", self.to_dict())
         return True
@@ -113,7 +113,7 @@ class Schedule:
             return None
 
     def update_purpose(self, new_purpose: str) -> bool:
-        from app.datastore import DataStore
+        from app.data.datastore import DataStore
         if not new_purpose:
             return False
         self.purpose = new_purpose
@@ -121,7 +121,7 @@ class Schedule:
         return True
 
     def update_staff(self, staff_list: List["CareStaff"]) -> bool:
-        from app.datastore import DataStore
+        from app.data.datastore import DataStore
         if staff_list is None:
             return False
         self.staff_list = [staff.staff_id for staff in staff_list]
@@ -129,7 +129,7 @@ class Schedule:
         return True
 
     def update_location(self, new_location: str) -> bool:
-        from app.datastore import DataStore
+        from app.data.datastore import DataStore
         if not new_location:
             return False
         self.location = new_location
@@ -137,7 +137,7 @@ class Schedule:
         return True
 
     def update_date_and_time(self, new_datetime: datetime) -> bool:
-        from app.datastore import DataStore
+        from app.data.datastore import DataStore
         if not isinstance(new_datetime, datetime):
             return False
         self.date_and_time = new_datetime
@@ -152,7 +152,7 @@ class Schedule:
     def to_dict(self) -> Dict[str, Any]:
         """Serialise the schedule with legacy-friendly keys."""
         return {
-            "carestaffID": self.carestaff_id,
+            "id": self.carestaff_id,
             "task": self.task,
             "date": self.date,
             "scheduleID": self.schedule_id,
@@ -165,7 +165,7 @@ class Schedule:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Schedule":
         return cls(
-            carestaff_id=data.get("carestaffID", ""),
+            carestaff_id=data.get("id", ""),
             task=data.get("task", ""),
             date=data.get("date", ""),
             schedule_id=data.get("scheduleID"),
@@ -205,7 +205,7 @@ class Appointment:
         )
 
     def change_date_or_time(self, new_datetime: datetime) -> bool:
-        from app.datastore import DataStore
+        from app.data.datastore import DataStore
         if not isinstance(new_datetime, datetime):
             return False
         self.date_and_time = new_datetime
@@ -213,8 +213,8 @@ class Appointment:
         return True
 
     def change_staff(self, staff_member: "CareStaff") -> bool:
-        from app.datastore import DataStore
-        from app.carestaff import CareStaff
+        from app.data.datastore import DataStore
+        from app.model.carestaff import CareStaff
 
         if not isinstance(staff_member, CareStaff):
             return False
@@ -235,24 +235,24 @@ class Appointment:
     def to_dict(self) -> Dict[str, Any]:
         return {
             "appointmentID": self.appointment_id,
-            "patientID": self.patient_id,
+            "id": self.patient_id,
             "dateAndTime": self.date_and_time.isoformat(),
             "type": self.type,
             "status": self.status,
             "notes": self.notes,
             "duration": self.duration,
-            "staffID": self.staff_id,
+            "id": self.staff_id,
         }
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Appointment":
         return cls(
             appointment_id=data.get("appointmentID", ""),
-            patient_id=data.get("patientID", ""),
+            patient_id=data.get("id", ""),
             date_and_time=datetime.fromisoformat(data.get("dateAndTime")) if data.get("dateAndTime") else datetime.now(),
             type=data.get("type", "consultation"),
             status=data.get("status", "requested"),
             notes=data.get("notes", ""),
             duration=int(data.get("duration", 30)),
-            staff_id=data.get("staffID"),
+            staff_id=data.get("id"),
         )

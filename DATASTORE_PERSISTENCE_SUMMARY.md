@@ -104,12 +104,12 @@ DataStore.upsert(collection_name, id_key, self.to_dict())
 - `unassign_patient()` - Patient unassignment
 
 **Collection:** `"carestaffs"`  
-**ID Key:** `"carestaffID"`
+**ID Key:** `"id"`
 
 ## Collection Name Consistency
 Fixed inconsistent collection naming:
 - Changed `"carestaff"` → `"carestaffs"` globally
-- Fixed ID key parameter from `self.staff_id` to `"carestaffID"`
+- Fixed ID key parameter from `self.staff_id` to `"id"`
 
 ## Test Results
 - **51 out of 52** carestaff tests passing

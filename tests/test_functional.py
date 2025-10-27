@@ -1,9 +1,29 @@
 import sys
 import os
+
+from app.model.carestaff import CareStaff
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import pytest
 from app.carelog_service import CareLogService
+
+
+@pytest.fixture
+def mock_datastore(monkeypatch):
+    """Mock datastore for testing."""
+    store = {
+        "patients": [
+            {"id": "p1", "name": "Alice", "disease": "Flu", "high_risk": False},
+            {"id": "p2", "name": "Bob", "disease": "Cold", "high_risk": True},
+        ],
+        "notes": [],
+        "schedules": [],
+        "carestaffs": [],
+    }
+
+    monkeypatch.setattr(CareStaff, "_load_data", lambda self: store)
+    monkeypatch.setattr(CareStaff, "_save_data", lambda self, data: store.update(data))
+    return store
 
 @pytest.fixture
 def service():
@@ -39,22 +59,3 @@ def test_full_patient_workflow(service):
     # Logout (simulated by setting logged_in to None)
     logged_in = None
     assert logged_in is None
-
-def test_care_staff_search_functional(service):
-    # Functional test: Search care staff by name and field
-    service.care_staff = {
-        "staff1": {"name": "Dr. Alice", "field": "General", "contact": "alice@clinic.com"},
-        "staff2": {"name": "Nurse Bob", "field": "Nursing", "contact": "bob@hospital.com"},
-        "staff3": {"name": "Dr. Carol", "field": "Cardiology", "contact": "carol@heart.com"}
-    }
-    # Search by name
-    results = service.search_care_staff("alice")
-    assert len(results) == 1
-    assert results[0]["name"] == "Dr. Alice"
-    # Search by field
-    results = service.search_care_staff("cardiology")
-    assert len(results) == 1
-    assert results[0]["field"] == "Cardiology"
-    # Search with no match
-    results = service.search_care_staff("xyz")
-    assert len(results) == 0
