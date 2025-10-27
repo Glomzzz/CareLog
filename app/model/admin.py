@@ -267,19 +267,39 @@ class Admin(User):
             print(f"No patient found matching the keyword '{keyword}'.")
     @classmethod
     def get_admin_by_id(cls, admin_id: str):
-        """Get an admin by ID from the datastore."""
+        """Get an admin by ID from the datastore and return an Admin instance.
+
+        The datastore stores admin records as plain dicts; this helper reconstructs
+        an Admin object to provide the higher-level methods (login, update, etc.).
+        """
         data = DataStore.get_by_id("admins", "id", admin_id)
-        return data
+        if not data:
+            return None
+        # Reconstruct Admin using stored values; fall back to sensible defaults.
+        return cls(
+            name=data.get("name", "admin"),
+            id=data.get("id", admin_id),
+            phone=data.get("phone", ""),
+            email=data.get("email", ""),
+            password=data.get("password", ""),
+        )
+
     @classmethod
-    def register(cls, name: str, id: str, email: str, password: str):
-        """Register a new admin in the system."""
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+    def register(cls, name: str, id: str, email: str, password: str, phone: str = ""):
+        """Register a new admin in the system.
+
+        Accepts an optional phone value and persists a plain dict keyed by
+        `id` so the record can be retrieved by older code that expects that shape.
+        Returns an Admin instance.
+        """
+        hashed_password = bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
         admin = cls(
             name,
             id,
+            phone=phone,
             email=email,
-            password=hashed_password
+            password=hashed_password,
         )
-        # Save to admins collection
+        # Persist a plain dict with an `id` key so DataStore.get_by_id works as expected.
         DataStore.upsert("admins", "id", admin.to_dict())
         return admin

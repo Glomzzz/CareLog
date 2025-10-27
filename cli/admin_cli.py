@@ -12,18 +12,18 @@ class AdminCLI:
         phone = input("Enter Phone Number: ").strip()
         email = input("Enter Email: ").strip()
         password = input("Enter Password: ").strip()
-
-
+        # Admin.register signature expects (name, id, email, password, phone)
         new_admin = Admin.register(
             name,
             admin_id,
-            phone,
             email,
-            password
+            password,
+            phone,
         )
 
         if new_admin:
-            print(Fore.GREEN + f"✓ Registration successful! Your Admin ID is {new_admin.id}")
+            # Persisted record uses the provided admin_id as the identifier.
+            print(Fore.GREEN + f"✓ Registration successful! Your Admin ID is {admin_id}")
             self.current_admin = new_admin
         else:
             print(Fore.RED + "✗ Registration failed. Please try again.")

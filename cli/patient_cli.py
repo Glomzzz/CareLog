@@ -209,7 +209,6 @@ class PatientCli:
             elif choice == "3":
                 print("Thank you for using CareLog!")
                 break
-            input("Press Enter to continue...")
 
 def validate_choice(choice: str, valid_options: list) -> bool:
     """Validate if user input is one of the valid options"""

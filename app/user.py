@@ -61,7 +61,7 @@ class User:
                 updated = True
         
         if updated:
-            DataStore.upsert("users", "userID", self.to_dict())
+            DataStore.upsert("users", "id", self.to_dict())
         return updated
 
     def change_password(self, old_password: str, new_password: str) -> bool:
@@ -72,7 +72,7 @@ class User:
 
         if self.password == old_password:
             self.password = new_password
-            DataStore.upsert("users", "userID", self.to_dict())
+            DataStore.upsert("users", "id", self.to_dict())
             return True
         return False
 
@@ -81,7 +81,7 @@ class User:
     # -----------------------------
     def to_dict(self) -> Dict[str, Any]:
         return {
-            "userID": self.user_id,
+            "id": self.user_id,
             "name": self.name,
             "email": self.email,
             "password": self.password,
@@ -95,7 +95,7 @@ class User:
         created = data.get("createdAt")
         created_dt = datetime.fromisoformat(created) if isinstance(created, str) else datetime.now()
         return cls(
-            user_id=data.get("userID", ""),
+            user_id=data.get("id", ""),
             name=data.get("name", ""),
             email=data.get("email", ""),
             password=data.get("password", ""),
