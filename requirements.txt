@@ -1,0 +1,5 @@
+pytest
+colorama
+bcrypt
+cryptography
+argon2

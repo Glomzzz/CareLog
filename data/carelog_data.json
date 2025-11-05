@@ -1,0 +1,635 @@
+{
+    "patients": [
+        {
+            "id": "af177b72-835e-4c9b-b7fa-f89ea99b3c56",
+            "key": "a05fb5f315ddbb682249b7473277bb1061eecc06fd165ff13ea65c834a8d5109",
+            "iv": "427d8a5b4ee49892e569e2d2ad13bdfe",
+            "name": "427d8a5b4ee49892e569e2d2ad13bdfecac513d14d536e668b44732bddfe18b9",
+            "email": "427d8a5b4ee49892e569e2d2ad13bdfeca6c512e0a115cf1e5209a7f50c5345d",
+            "phone": "427d8a5b4ee49892e569e2d2ad13bdfe4910d73b31662af49f12ac659512e0f8",
+            "password_hash": "$2b$12$CTC5M3yOec2w5ouihAMOvugevj3mjYf.h067UCiHICtazWUfqTWS."
+        },
+        {
+            "id": "80b1390d-0a89-4c01-b765-5e69eb9752c2",
+            "key": "0670c5e2b62aa3cd5fab693defe73c2069145e67599918579018cb6573e4db3a",
+            "iv": "c078cdeab5be6ea357e35660a2a9e6ec",
+            "name": "c078cdeab5be6ea357e35660a2a9e6ec8fa903be463887344ca3c30ff9b1e9b0",
+            "email": "c078cdeab5be6ea357e35660a2a9e6eca714b29aa806881536f1ae19fc846a00cf9986c94a84c96942a055077de7e8f8",
+            "phone": "c078cdeab5be6ea357e35660a2a9e6ec3f6920f055643f7da0a88851bd4001ad",
+            "password_hash": "$2b$12$OMcw.HQnczyNwVMc.RVEtOmQvJOpmWiFY1hpcucyPpZ8fqKtNkIxS"
+        },
+        {
+            "id": "8d75ce1f-8b9e-46ec-9390-092bac36fa00",
+            "key": "b8ab038892555e0a4fe377cc0e47e12026fa5e787e20de22a6259606758e261a",
+            "iv": "26a96863e353d5464d0d46110fd284cc",
+            "name": "26a96863e353d5464d0d46110fd284cce761af46c141fe8df6672717b41b1ea7",
+            "email": "26a96863e353d5464d0d46110fd284cc75330c5200a01295043137caa5cc3179b9e02d73211049b2b9906e57a0cb593f",
+            "phone": "26a96863e353d5464d0d46110fd284cc347106ca6952cfdd93fe63dee28861b7",
+            "password_hash": "$2b$12$J16mNzP36BDuDnDaBJYey.G2pQLa5VoULHSTrV7JciGRs0Cf19R9a"
+        }
+    ],
+    "carestaffs": [
+        {
+            "id": "cs003",
+            "name": "Emma",
+            "email": "cs003@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "carestaff"
+        },
+        {
+            "id": "cs004",
+            "name": "Oliver",
+            "email": "cs004@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "carestaff"
+        },
+        {
+            "id": "cs005",
+            "name": "Sophia",
+            "email": "cs005@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "carestaff"
+        },
+        {
+            "id": "cs008",
+            "name": "Noah",
+            "email": "cs008@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "carestaff"
+        },
+        {
+            "id": "cs009",
+            "name": "Isabella",
+            "email": "cs009@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "carestaff"
+        },
+        {
+            "id": "cs010",
+            "name": "Mia",
+            "email": "cs010@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "carestaff"
+        },
+        {
+            "id": "cs011",
+            "name": "Lucas",
+            "email": "cs011@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "carestaff"
+        },
+        {
+            "id": "doc002",
+            "name": "Dr. Jones",
+            "email": "doc002@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "doctor",
+            "licenseNumber": "LIC456",
+            "certifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "doc003",
+            "name": "Dr. Brown",
+            "email": "doc003@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "doctor",
+            "licenseNumber": "LIC789",
+            "certifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "doc004",
+            "name": "Dr. Wilson",
+            "email": "doc004@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "doctor",
+            "licenseNumber": "LIC101",
+            "certifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "doc006",
+            "name": "Dr. Miller",
+            "email": "doc006@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "doctor",
+            "licenseNumber": "LIC303",
+            "certifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "doc007",
+            "name": "Dr. Garcia",
+            "email": "doc007@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "doctor",
+            "licenseNumber": "LIC404",
+            "certifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "doc009",
+            "name": "Dr. Rodriguez",
+            "email": "doc009@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "doctor",
+            "licenseNumber": "LIC606",
+            "certifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "doc010",
+            "name": "Dr. Lee",
+            "email": "doc010@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "doctor",
+            "licenseNumber": "LIC707",
+            "certifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "doc012",
+            "name": "Dr. Harris",
+            "email": "doc012@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "doctor",
+            "licenseNumber": "LIC909",
+            "certifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "doc013",
+            "name": "Dr. Clark",
+            "email": "doc013@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "doctor",
+            "licenseNumber": "LIC010",
+            "certifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "doc014",
+            "name": "Dr. Lewis",
+            "email": "doc014@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "doctor",
+            "licenseNumber": "LIC111",
+            "certifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "nur002",
+            "name": "Nurse Thompson",
+            "email": "nur002@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "nurse",
+            "licenseNumber": "NL456",
+            "qualifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "nur003",
+            "name": "Nurse Anderson",
+            "email": "nur003@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "nurse",
+            "licenseNumber": "NL789",
+            "qualifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "nur005",
+            "name": "Nurse Thomas",
+            "email": "nur005@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "nurse",
+            "licenseNumber": "NL202",
+            "qualifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "nur006",
+            "name": "Nurse Jackson",
+            "email": "nur006@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "nurse",
+            "licenseNumber": "NL303",
+            "qualifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "nur007",
+            "name": "Nurse White",
+            "email": "nur007@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "nurse",
+            "licenseNumber": "NL404",
+            "qualifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "nur008",
+            "name": "Nurse Harris",
+            "email": "nur008@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "nurse",
+            "licenseNumber": "NL505",
+            "qualifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "nur010",
+            "name": "Nurse Robinson",
+            "email": "nur010@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "nurse",
+            "licenseNumber": "NL707",
+            "qualifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "nur011",
+            "name": "Nurse Clark",
+            "email": "nur011@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "nurse",
+            "licenseNumber": "NL808",
+            "qualifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "doc100",
+            "name": "Dr. Smith",
+            "email": "doc100@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "doctor",
+            "licenseNumber": "LIC100",
+            "certifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "nur100",
+            "name": "Nurse Jones",
+            "email": "nur100@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "nurse",
+            "licenseNumber": "NL100",
+            "qualifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "cs100",
+            "name": "Staff Member",
+            "email": "cs100@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "carestaff"
+        },
+        {
+            "id": "doc101",
+            "name": "Dr. Emergency",
+            "email": "doc101@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "doctor",
+            "licenseNumber": "LIC101",
+            "certifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "d1",
+            "name": "Dr. Who",
+            "email": "d1@carelog.local",
+            "password": "",
+            "department": "Cardiology",
+            "specialization": "",
+            "role": "doctor",
+            "licenseNumber": "LIC123",
+            "certifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "n1",
+            "name": "Nina",
+            "email": "n1@carelog.local",
+            "password": "",
+            "department": "",
+            "specialization": "",
+            "role": "nurse",
+            "licenseNumber": "LN001",
+            "qualifications": [],
+            "workToDo": ""
+        },
+        {
+            "id": "doccli1",
+            "name": "Dr. Test",
+            "email": "dr.test+cli@example.com",
+            "password": "$2b$12$IqNCe2Ff7HdLTSYrMCgI5unZHkJ2zk.w/S7uUOUfABb/avPAwUgvO",
+            "department": "General",
+            "specialization": "",
+            "role": "doctor",
+            "licenseNumber": "LIC123",
+            "certifications": [],
+            "workToDo": ""
+        }
+    ],
+    "notes": [],
+    "schedules": [],
+    "wellbeing_logs": [
+        {
+            "id": "42804b84-0e01-4cbc-9249-2d05f857ed5b",
+            "patient_id": "af177b72-835e-4c9b-b7fa-f89ea99b3c56",
+            "timestamp": "2025-10-27 22:42:36.518036",
+            "key": "f8bab9dcd041f61d374c7ebe71c594cb68088b51260246f39c8487574784fbae",
+            "iv": "82ff10971a401302e29bfea9d86bade2",
+            "pain_level": "82ff10971a401302e29bfea9d86bade265dc757b5516754b34bf494114468270",
+            "mood": "82ff10971a401302e29bfea9d86bade2a515f87b2e3c819590d47199b34b7df5",
+            "appetite": "82ff10971a401302e29bfea9d86bade2638a7550bda3449d2df2d99e75970ac6",
+            "notes": "82ff10971a401302e29bfea9d86bade262592d89b45c9134674816606e371ede"
+        },
+        {
+            "id": "ee2f7342-068e-440b-abef-aa9a6b9b5a7f",
+            "patient_id": "af177b72-835e-4c9b-b7fa-f89ea99b3c56",
+            "timestamp": "2025-10-27 22:44:04.904726",
+            "key": "f5865f5577a09a821676bd6038feb05e857da718af7b5c13994dd347d62e79a5",
+            "iv": "985a40fb8585c70d304e8631b3ed5292",
+            "pain_level": "985a40fb8585c70d304e8631b3ed5292c4e710fb07147757284d5a54ce019215",
+            "mood": "985a40fb8585c70d304e8631b3ed5292c4e710fb07147757284d5a54ce019215",
+            "appetite": "985a40fb8585c70d304e8631b3ed5292c4e710fb07147757284d5a54ce019215",
+            "notes": "985a40fb8585c70d304e8631b3ed5292c4e710fb07147757284d5a54ce019215"
+        },
+        {
+            "id": "10e63723-2431-48b4-b217-f9588b326148",
+            "patient_id": "80b1390d-0a89-4c01-b765-5e69eb9752c2",
+            "timestamp": "2025-10-27 22:55:41.118968",
+            "key": "d37fcf787df2893967d7bb67d12f6099b4740f5c685fffbdfcaa8ffdc13de6ef",
+            "iv": "dcead5e70e8a3c070150167d57b1138a",
+            "pain_level": "dcead5e70e8a3c070150167d57b1138adb168908d2a34e3527bdbdaf2f0734d6",
+            "mood": "dcead5e70e8a3c070150167d57b1138a0f7903ba4e6a17f04171382bad6295df",
+            "appetite": "dcead5e70e8a3c070150167d57b1138acd208515e4a36cd5b57c1d43d62e40ff",
+            "notes": "dcead5e70e8a3c070150167d57b1138a5a6257be797bfc2c25bdc194794725dd"
+        }
+    ],
+    "tasks": [
+        {
+            "taskID": "t1",
+            "title": "Check Vitals",
+            "description": "Morning rounds",
+            "priority": "normal",
+            "status": "completed",
+            "dueDate": "2025-01-03T08:00:00",
+            "completedAt": "2025-10-27T22:55:41.122541",
+            "assigneeID": "c1"
+        },
+        {
+            "taskID": "t2",
+            "title": "Review Labs",
+            "description": "Lab results",
+            "priority": "high",
+            "status": "pending",
+            "dueDate": "2025-10-27T22:55:40.439668",
+            "completedAt": null,
+            "assigneeID": null
+        },
+        {
+            "taskID": "t3",
+            "title": "Update Records",
+            "description": "Patient records",
+            "priority": "normal",
+            "status": "in-progress",
+            "dueDate": "2025-10-27T22:55:40.440439",
+            "completedAt": null,
+            "assigneeID": null
+        }
+    ],
+    "alerts": [
+        {
+            "alertID": "a1",
+            "type": "system",
+            "severity": "medium",
+            "message": "Check system logs",
+            "createdAt": "2025-10-27T22:55:41.134739",
+            "acknowledgedAt": "2025-10-27T22:55:41.134763",
+            "resolvedAt": null,
+            "status": "acknowledged"
+        },
+        {
+            "alertID": "a2",
+            "type": "patient",
+            "severity": "high",
+            "message": "Patient needs attention",
+            "createdAt": "2025-10-27T22:55:40.442909",
+            "acknowledgedAt": null,
+            "resolvedAt": "2025-10-27T22:55:40.442915",
+            "status": "resolved"
+        },
+        {
+            "alertID": "alert-p1-1",
+            "type": "escalation",
+            "severity": "high",
+            "message": "Escalate p1 to Cardiology",
+            "createdAt": "2025-10-27T22:55:40.520988",
+            "acknowledgedAt": "2025-10-27T22:55:40.521960",
+            "resolvedAt": "2025-10-27T22:55:40.523345",
+            "status": "resolved"
+        }
+    ],
+    "assignments": [
+        {
+            "assignmentID": "assign-p1-cs010",
+            "assignedDate": "2025-10-27",
+            "assignmentType": "primary",
+            "notes": "Assigned to Mia",
+            "id": "cs010",
+            "active": true
+        },
+        {
+            "assignmentID": "assign1",
+            "assignedDate": "2025-10-27",
+            "assignmentType": "primary",
+            "notes": "",
+            "id": "cs011",
+            "active": false
+        },
+        {
+            "assignmentID": "assign-p1-nur005",
+            "assignedDate": "2025-10-27",
+            "assignmentType": "observation",
+            "notes": "Monitor overnight",
+            "id": "nur005",
+            "active": true
+        },
+        {
+            "assignmentID": "assign-p1-cs100",
+            "assignedDate": "2025-10-27",
+            "assignmentType": "primary",
+            "notes": "Assigned to Staff Member",
+            "id": "cs100",
+            "active": true
+        },
+        {
+            "assignmentID": "assign-p2-cs100",
+            "assignedDate": "2025-10-27",
+            "assignmentType": "primary",
+            "notes": "Assigned to Staff Member",
+            "id": "cs100",
+            "active": false
+        },
+        {
+            "assignmentID": "assign-p3-cs100",
+            "assignedDate": "2025-10-27",
+            "assignmentType": "primary",
+            "notes": "Assigned to Staff Member",
+            "id": "cs100",
+            "active": true
+        },
+        {
+            "assignmentID": "assign-p1-n1",
+            "assignedDate": "2025-10-27",
+            "assignmentType": "observation",
+            "notes": "",
+            "id": "n1",
+            "active": true
+        }
+    ],
+    "medical_details": [
+        {
+            "recordID": "med-p1",
+            "createdAt": "2025-10-27T22:55:41.123694",
+            "updatedAt": "2025-10-27T22:55:41.125777",
+            "createdBy": "d1",
+            "history": [
+                {
+                    "description": "Initial consult"
+                },
+                {
+                    "medications": "MedA"
+                },
+                {
+                    "medications": "MedA,MedB"
+                }
+            ],
+            "type": "MedicalDetails",
+            "sicknessName": "",
+            "department": "Cardiology",
+            "severity": "",
+            "description": "Initial consult",
+            "medications": [
+                "MedA",
+                "MedB"
+            ],
+            "treatments": [],
+            "status": "Pending"
+        }
+    ],
+    "vital_signs": [
+        {
+            "recordID": "vitals-p1",
+            "createdAt": "2025-10-27T22:55:41.129054",
+            "updatedAt": "2025-10-27T22:55:41.129074",
+            "createdBy": "n1",
+            "history": [
+                {
+                    "measurement": "2025-10-27T22:55:41.129068"
+                }
+            ],
+            "type": "VitalSigns",
+            "measurementID": "",
+            "temperature": 38.5,
+            "heartRate": 0,
+            "bloodPressureSystolic": 0,
+            "bloodPressureDiastolic": 0,
+            "respiratoryRate": 0,
+            "oxygenSaturation": 0.0,
+            "measuredAt": "2025-10-27T22:55:41.129068"
+        }
+    ],
+    "food_deliveries": [
+        {
+            "deliveryID": "del001",
+            "foodItems": "Lunch Tray",
+            "roomNumber": 101,
+            "scheduledTime": "2025-10-27T22:55:40.482001",
+            "deliveredTime": "2025-10-27T22:55:40.482013",
+            "status": "delivered",
+            "specialInstructions": ""
+        },
+        {
+            "deliveryID": "del002",
+            "foodItems": "Dinner",
+            "roomNumber": 102,
+            "scheduledTime": "2025-10-27T22:55:40.484169",
+            "deliveredTime": null,
+            "status": "cancelled",
+            "specialInstructions": ""
+        }
+    ],
+    "admins": [
+        {
+            "id": "Glom",
+            "name": "Glom",
+            "email": "1",
+            "password": "$2b$12$9/BFWqXr4h8MOVrpsGC8HuECJQzHzlhdzS/9bYa8EkBtbiB/45K2u",
+            "role": "admin",
+            "createdAt": "2025-10-27T23:27:25.102454",
+            "isActive": true
+        }
+    ]
+}
